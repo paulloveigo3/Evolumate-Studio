@@ -3,396 +3,233 @@
 <head>
 <meta charset="UTF-8">
 <title>Evolumate Studio - Pro</title>
+<script src="https://unpkg.com/coi-serviceworker/coi-serviceworker.min.js"></script>
 <script src="https://accounts.google.com/gsi/client" async defer></script>
 <script src="https://cdn.jsdelivr.net/npm/@ffmpeg/ffmpeg@0.12.10/dist/umd/ffmpeg.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@ffmpeg/util@0.12.1/dist/umd/index.js"></script>
-<script src="https://cdn.tailwindcss.com"></script>
 
 <style>
-  /* === 核心樣式 (確保 UI 不崩壞) === */
-  body { background-color: #030712; color: #e5e7eb; font-family: sans-serif; height: 100vh; width: 100vw; overflow: hidden; display: flex; flex-direction: column; margin: 0; }
+  /* === 內建 CSS (取代 Tailwind 以避免被 COEP 封鎖) === */
+  :root { --bg-dark: #030712; --bg-panel: #111827; --border: #1f2937; --text-main: #e5e7eb; --text-muted: #9ca3af; --primary: #3b82f6; --accent: #22c55e; }
+  body { background-color: var(--bg-dark); color: var(--text-main); font-family: system-ui, -apple-system, sans-serif; margin: 0; height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
   
   /* 滾動條 */
   ::-webkit-scrollbar { width: 6px; height: 6px; }
-  ::-webkit-scrollbar-track { background: #111827; }
+  ::-webkit-scrollbar-track { background: var(--bg-panel); }
   ::-webkit-scrollbar-thumb { background: #374151; border-radius: 3px; }
-  
-  /* 頂部導航 */
-  header { height: 48px; border-bottom: 1px solid #1f2937; background-color: #111827; display: flex; align-items: center; justify-content: space-between; padding: 0 24px; flex-shrink: 0; z-index: 20; }
+
+  /* 頂部 */
+  header { height: 56px; background: var(--bg-panel); border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; padding: 0 24px; flex-shrink: 0; z-index: 20; }
+  .logo { font-weight: bold; letter-spacing: 1px; color: #d1d5db; display: flex; align-items: center; gap: 8px; font-size: 14px; }
+  .logo span { color: var(--primary); }
+  .status-bar { display: flex; align-items: center; gap: 16px; font-size: 12px; font-family: monospace; color: var(--text-muted); }
   
   /* 設定按鈕 */
-  .settings-btn { width: 32px; height: 32px; border-radius: 50%; background: #1f2937; border: 1px solid #374151; display: flex; align-items: center; justify-content: center; color: #9ca3af; cursor: pointer; transition: all 0.3s; }
-  .settings-btn:hover { background: #374151; color: #60a5fa; transform: rotate(90deg); border-color: #60a5fa; }
+  .settings-btn { width: 32px; height: 32px; border-radius: 50%; background: #1f2937; border: 1px solid #374151; color: #9ca3af; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: 0.3s; }
+  .settings-btn:hover { color: var(--primary); border-color: var(--primary); transform: rotate(90deg); }
 
-  /* 網格背景 */
-  .transparency-grid {
-    background-image: linear-gradient(45deg, #2a2a2a 25%, transparent 25%), linear-gradient(-45deg, #2a2a2a 25%, transparent 25%), linear-gradient(45deg, transparent 75%, #2a2a2a 75%), linear-gradient(-45deg, transparent 75%, #2a2a2a 75%);
-    background-size: 20px 20px; background-position: 0 0, 0 10px, 10px -10px, -10px 0px; background-color: #1f1f1f;
-  }
+  /* 主佈局 */
+  .main-layout { display: grid; grid-template-columns: 320px 1fr; height: 100%; overflow: hidden; }
+  .sidebar { background: var(--bg-panel); border-right: 1px solid var(--border); display: flex; flex-direction: column; z-index: 10; }
+  .content { background: #000; position: relative; display: flex; flex-direction: column; }
 
-  /* 佈局 */
-  .main-grid { display: grid; grid-template-columns: repeat(12, minmax(0, 1fr)); height: 100%; overflow: hidden; }
-  .sidebar { grid-column: span 3 / span 3; background: #111827; border-right: 1px solid #1f2937; display: flex; flex-direction: column; z-index: 10; }
-  .main-content { grid-column: span 9 / span 9; background: #030712; display: flex; flex-direction: column; position: relative; }
-
-  /* 元件 */
-  .panel-header { font-size: 10px; font-weight: bold; color: #6b7280; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 8px; }
-  .dropzone { border: 2px dashed #374151; border-radius: 12px; background: rgba(31, 41, 55, 0.5); height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; cursor: pointer; transition: 0.2s; position: relative; }
-  .dropzone:hover { background: #1f2937; border-color: #3b82f6; }
+  /* 面板與元件 */
+  .panel-section { padding: 20px; border-bottom: 1px solid var(--border); }
+  .panel-title { font-size: 11px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 10px; display: block; }
+  .blue-title { color: #60a5fa; }
   
-  .btn-primary { width: 100%; background: #2563eb; color: white; padding: 12px; border-radius: 8px; font-size: 14px; font-weight: bold; border: none; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; transition: 0.2s; }
-  .btn-primary:hover { background: #1d4ed8; transform: translateY(-1px); }
-  .btn-primary:disabled { opacity: 0.5; cursor: not-allowed; }
+  .dropzone { border: 2px dashed #374151; border-radius: 8px; height: 100px; background: rgba(31, 41, 55, 0.4); display: flex; flex-direction: column; align-items: center; justify-content: center; cursor: pointer; transition: 0.2s; position: relative; }
+  .dropzone:hover { border-color: var(--primary); background: rgba(59, 130, 246, 0.1); }
+  .dropzone input { position: absolute; inset: 0; opacity: 0; cursor: pointer; }
+  
+  /* 輸入控制項 */
+  .control-group { margin-bottom: 16px; }
+  .control-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; font-size: 11px; color: var(--text-muted); }
+  input[type="range"] { width: 100%; height: 4px; background: #374151; border-radius: 2px; appearance: none; cursor: pointer; }
+  input[type="range"]::-webkit-slider-thumb { appearance: none; width: 14px; height: 14px; background: var(--primary); border-radius: 50%; }
+  
+  input[type="text"] { background: #1f2937; border: 1px solid #374151; color: white; padding: 4px 8px; border-radius: 4px; font-family: monospace; font-size: 12px; width: 100%; box-sizing: border-box; }
+  
+  .btn-primary { width: 100%; background: linear-gradient(to right, #2563eb, #3b82f6); color: white; border: none; padding: 12px; border-radius: 6px; font-weight: bold; font-size: 13px; cursor: pointer; transition: 0.2s; text-shadow: 0 1px 2px rgba(0,0,0,0.2); }
+  .btn-primary:hover { filter: brightness(1.1); transform: translateY(-1px); }
+  .btn-primary:disabled { filter: grayscale(1); opacity: 0.5; cursor: not-allowed; }
+
+  /* 預覽區 */
+  .preview-area { flex: 1; display: flex; align-items: center; justify-content: center; background-image: linear-gradient(45deg, #1a1a1a 25%, transparent 25%), linear-gradient(-45deg, #1a1a1a 25%, transparent 25%), linear-gradient(45deg, transparent 75%, #1a1a1a 75%), linear-gradient(-45deg, transparent 75%, #1a1a1a 75%); background-size: 20px 20px; background-color: #0f0f0f; }
+  canvas { max-width: 90%; max-height: 90%; box-shadow: 0 0 20px rgba(0,0,0,0.5); border: 1px solid #333; }
 
   /* Modal */
-  .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.85); backdrop-filter: blur(4px); z-index: 50; display: flex; align-items: center; justify-content: center; opacity: 0; pointer-events: none; transition: 0.2s; }
+  .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.8); backdrop-filter: blur(4px); z-index: 50; display: flex; align-items: center; justify-content: center; opacity: 0; pointer-events: none; transition: 0.3s; }
   .modal-overlay.active { opacity: 1; pointer-events: auto; }
-  .modal-box { background: #111827; border: 1px solid #374151; border-radius: 16px; width: 100%; max-width: 400px; padding: 0; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5); transform: scale(0.95); transition: 0.2s; }
+  .modal-box { background: #111827; border: 1px solid #374151; padding: 24px; border-radius: 12px; width: 360px; box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.5); text-align: center; transform: scale(0.95); transition: 0.2s; }
   .modal-overlay.active .modal-box { transform: scale(1); }
 
-  /* 其他 */
-  input[type="range"] { width: 100%; height: 4px; background: #374151; border-radius: 2px; appearance: none; }
-  input[type="range"]::-webkit-slider-thumb { appearance: none; width: 16px; height: 16px; background: #3b82f6; border-radius: 50%; cursor: pointer; }
-  .hidden { display: none !important; }
+  /* 進度條動畫 */
+  .progress-ring circle { transition: stroke-dashoffset 0.3s; transform: rotate(-90deg); transform-origin: 50% 50%; }
+  
+  .hidden { display: none; }
 </style>
 </head>
 <body>
 
   <header>
     <div style="display:flex; align-items:center; gap:16px;">
-      <button id="open-settings-btn" class="settings-btn" title="設定與登入">
-          <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
+      <button id="open-settings-btn" class="settings-btn" title="設定">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><path d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
       </button>
-      
-      <div style="height:24px; width:1px; background:#374151;"></div>
-
-      <div style="display:flex; align-items:center; gap:8px;">
-        <div style="width:12px; height:12px; border-radius:50%; background:linear-gradient(to right, #3b82f6, #a855f7);"></div>
-        <h1 style="font-size:14px; font-weight:bold; letter-spacing:0.1em; color:#d1d5db;">EVOLUMATE <span style="color:#60a5fa;">STUDIO</span></h1>
-      </div>
+      <div class="logo">EVOLUMATE <span>PRO</span></div>
     </div>
-
-    <div style="display:flex; align-items:center; gap:16px;">
-        <div id="user-status-indicator" class="hidden" style="display:flex; align-items:center; gap:6px; font-size:12px; color:#4ade80;">
-            <span>●</span> 已登入 Google Drive
-        </div>
-        <div style="font-size:12px; font-family:monospace; color:#6b7280; display:flex; align-items:center; gap:8px; border-left:1px solid #374151; padding-left:16px;">
-            <span id="engine-dot" style="width:8px; height:8px; border-radius:50%; background:#ef4444; transition:0.5s;"></span>
-            <span id="engine-status">Loading Engine...</span>
-        </div>
+    <div class="status-bar">
+      <div id="auth-indicator" class="hidden" style="color:#4ade80;">● 已登入</div>
+      <div style="display:flex; align-items:center; gap:6px;">
+        <span id="engine-dot" style="width:8px; height:8px; border-radius:50%; background:#ef4444; transition:0.5s;"></span>
+        <span id="engine-status">Loading...</span>
+      </div>
     </div>
   </header>
 
-  <div class="main-grid">
+  <div class="main-layout">
     <aside class="sidebar">
-      
-      <div style="height:25%; padding:16px; border-bottom:1px solid #1f2937; display:flex; flex-direction:column;">
-        <h2 class="panel-header">1. 來源影片 (Source)</h2>
-        <div id="dropzone" class="dropzone group">
-          <input type="file" id="uploader" accept="video/*" style="position:absolute; inset:0; opacity:0; cursor:pointer; z-index:10;" />
-          <svg style="width:32px; height:32px; color:#4b5563; margin-bottom:8px;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path></svg>
-          <p style="font-size:10px; color:#9ca3af; font-weight:500;">拖曳或點擊上傳</p>
+      <div class="panel-section">
+        <span class="panel-title">1. 來源影片</span>
+        <div class="dropzone">
+          <input type="file" id="uploader" accept="video/*">
+          <svg width="24" height="24" fill="none" stroke="#6b7280" stroke-width="2" viewBox="0 0 24 24"><path d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/></svg>
+          <span style="font-size:10px; color:#6b7280; margin-top:8px;">點擊或拖曳上傳</span>
         </div>
-        <video id="source-video" class="hidden" muted playsinline></video>
+        <video id="source-video" class="hidden"></video>
       </div>
 
-      <div style="flex:1; padding:16px; border-bottom:1px solid #1f2937; overflow-y:auto;">
-        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px;">
-          <h2 class="panel-header" style="color:#60a5fa; margin:0;">2. 去背參數</h2>
-          <input type="checkbox" id="enable-chroma" checked style="width:16px; height:16px; cursor:pointer;">
+      <div class="panel-section" style="flex:1; overflow-y:auto;">
+        <div style="display:flex; justify-content:space-between; margin-bottom:12px;">
+          <span class="panel-title blue-title">2. 去背參數</span>
+          <input type="checkbox" id="enable-chroma" checked style="cursor:pointer;">
         </div>
-        
-        <div style="display:flex; flex-direction:column; gap:20px;">
-          <div>
-            <label class="panel-header" style="display:block;">去背顏色</label>
-            <div style="display:flex; gap:8px;">
-              <input type="color" id="key-color" value="#00FF00" style="width:40px; height:32px; padding:0; border:1px solid #4b5563; background:none; cursor:pointer;">
-              <input type="text" id="key-color-text" value="#00FF00" style="flex:1; background:#1f2937; border:1px solid #374151; color:white; padding:0 12px; font-family:monospace; font-size:12px; border-radius:4px;">
-            </div>
+
+        <div class="control-group">
+          <div class="control-row">去背顏色 (Key Color)</div>
+          <div style="display:flex; gap:8px;">
+            <input type="color" id="key-color" value="#00FF00" style="width:32px; height:24px; padding:0; border:none; background:none;">
+            <input type="text" id="key-color-text" value="#00FF00">
           </div>
-          <div>
-            <div style="display:flex; justify-content:space-between; font-size:10px; margin-bottom:4px;"><span style="color:#9ca3af;">相似度</span><span id="val-similarity" style="color:#60a5fa; font-family:monospace;">0.30</span></div>
-            <input type="range" id="similarity" min="0.01" max="0.7" step="0.01" value="0.3">
-          </div>
-          <div>
-            <div style="display:flex; justify-content:space-between; font-size:10px; margin-bottom:4px;"><span style="color:#9ca3af;">平滑度</span><span id="val-blend" style="color:#60a5fa; font-family:monospace;">0.10</span></div>
-            <input type="range" id="blend" min="0.0" max="0.5" step="0.01" value="0.1">
-          </div>
-          
-          <button id="apply-preview-btn" style="width:100%; background:#1f2937; color:white; border:1px solid #374151; padding:10px; border-radius:4px; font-size:12px; cursor:pointer;">預覽去背效果</button>
+        </div>
+
+        <div class="control-group">
+          <div class="control-row"><span>相似度</span><span id="val-sim" style="color:#60a5fa;">0.30</span></div>
+          <input type="range" id="similarity" min="0.01" max="0.7" step="0.01" value="0.3">
+        </div>
+
+        <div class="control-group">
+          <div class="control-row"><span>平滑度</span><span id="val-blend" style="color:#60a5fa;">0.10</span></div>
+          <input type="range" id="blend" min="0.0" max="0.5" step="0.01" value="0.1">
         </div>
       </div>
-      
-      <div style="height:128px; background:black; border-top:1px solid #1f2937; padding:8px; display:flex; flex-direction:column;">
-         <div style="display:flex; justify-content:space-between; font-size:9px; color:#6b7280; margin-bottom:4px;"><span>SYSTEM LOGS</span><button onclick="document.getElementById('logs').innerHTML=''" style="background:none; border:none; color:#6b7280; cursor:pointer;">CLEAR</button></div>
-         <div id="logs" style="flex:1; overflow-y:auto; font-family:monospace; font-size:10px; color:#4ade80; line-height:1.4;"></div>
+
+      <div class="panel-section">
+        <span class="panel-title" style="color:#4ade80;">3. 輸出設定</span>
+        <div style="display:flex; gap:10px; margin-bottom:16px;">
+          <label style="flex:1; background:#1f2937; padding:8px; border-radius:4px; font-size:11px; cursor:pointer; display:flex; gap:4px; align-items:center; border:1px solid #374151;">
+            <input type="radio" name="output-mode" value="merged" checked> 合併
+          </label>
+          <label style="flex:1; background:#1f2937; padding:8px; border-radius:4px; font-size:11px; cursor:pointer; display:flex; gap:4px; align-items:center; border:1px solid #374151;">
+            <input type="radio" name="output-mode" value="split"> 分離
+          </label>
+        </div>
+        <button id="process-btn" class="btn-primary">生成並上傳至 Drive</button>
       </div>
     </aside>
 
-    <main class="main-content">
-      <div style="height:50%; border-bottom:1px solid #1f2937; display:flex; flex-direction:column;">
-        <div style="height:32px; background:#111827; border-bottom:1px solid #1f2937; display:flex; align-items:center; justify-content:space-between; padding:0 16px; font-size:10px; color:#6b7280; font-weight:bold;">
-           <span>時間軸預覽</span>
-           <span>SHIFT+SCROLL TO MOVE</span>
-        </div>
-        <div id="timeline-container" class="transparency-grid" style="flex:1; overflow-x:auto; overflow-y:hidden; white-space:nowrap; padding:16px; display:flex; align-items:center; position:relative;">
-           <div id="timeline-empty" style="position:absolute; inset:0; display:flex; align-items:center; justify-content:center; color:#6b7280; font-size:12px; pointer-events:none;">請先載入影片</div>
-           <div id="film-strip" style="display:flex; height:100%; transition:0.1s;"></div>
-        </div>
+    <main class="content">
+      <div class="preview-area">
+        <canvas id="preview-canvas"></canvas>
       </div>
-
-      <div style="flex:1; background:#030712; padding:24px; display:flex; flex-direction:column;">
-         <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px; border-bottom:1px solid #1f2937; padding-bottom:8px;">
-            <h3 style="font-size:14px; font-weight:bold; color:#d1d5db;">3. 剪輯與輸出</h3>
-            <button id="add-segment-btn" style="font-size:10px; background:#1f2937; color:#d1d5db; padding:6px 12px; border:1px solid #374151; border-radius:4px; cursor:pointer;">+ 新增片段</button>
-         </div>
-         <div id="segments-container" style="flex:1; overflow-y:auto; padding-right:8px; margin-bottom:16px;"></div>
-
-         <div style="border-top:1px solid #1f2937; padding-top:16px; display:flex; justify-content:space-between; align-items:center;">
-            <div style="background:#111827; padding:6px; border-radius:8px; border:1px solid #1f2937; display:flex; gap:16px; align-items:center;">
-                <span style="font-size:10px; font-weight:bold; color:#6b7280; padding-left:8px;">MODE</span>
-                <label style="font-size:12px; color:#d1d5db; display:flex; align-items:center; gap:4px; cursor:pointer;"><input type="radio" name="output-mode" value="merged" checked> 合併 (單檔)</label>
-                <label style="font-size:12px; color:#d1d5db; display:flex; align-items:center; gap:4px; cursor:pointer;"><input type="radio" name="output-mode" value="split"> 分離 (雙檔)</label>
-            </div>
-            <button id="process-btn" class="btn-primary" style="padding:12px 32px;">
-               生成並上傳至 Drive
-            </button>
-         </div>
-      </div>
+      <div style="position:absolute; top:16px; left:16px; font-size:10px; background:#000; padding:4px 8px; border:1px solid #333; color:#666; border-radius:4px;">LIVE PREVIEW</div>
     </main>
   </div>
 
   <div id="settings-modal" class="modal-overlay">
-      <div class="modal-box" id="settings-content">
-          <div style="padding:16px 24px; border-bottom:1px solid #374151; display:flex; justify-content:space-between; align-items:center;">
-              <h3 style="color:white; font-weight:bold; font-size:16px;">設定 (Settings)</h3>
-              <button id="close-settings-btn" style="background:none; border:none; color:#6b7280; cursor:pointer; font-size:20px;">&times;</button>
-          </div>
-          <div style="padding:24px; display:flex; flex-direction:column; gap:24px;">
-              <div style="background:rgba(31, 41, 55, 0.5); padding:16px; border-radius:8px; border:1px solid #374151;">
-                  <h4 style="font-size:12px; color:#9ca3af; font-weight:bold; margin:0 0 12px 0;">GOOGLE 帳戶</h4>
-                  <p style="font-size:12px; color:#6b7280; margin-bottom:16px;">連結 Drive 以儲存檔案。</p>
-                  <button id="auth-btn" style="width:100%; background:white; color:#1f2937; padding:10px; border-radius:4px; font-weight:bold; border:none; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:8px;">
-                      連結 Google 帳戶
-                  </button>
-              </div>
-              
-              <div>
-                  <h4 style="font-size:12px; color:#9ca3af; font-weight:bold; margin:0 0 12px 0;">說明</h4>
-                  <ul style="font-size:12px; color:#6b7280; padding-left:16px; margin:0; line-height:1.6;">
-                      <li>檔案將存入 Drive > <b>TempForChar</b></li>
-                      <li>使用本地算力，無流量限制</li>
-                      <li>此版本為 Vercel 穩定版 (單線程)</li>
-                  </ul>
-              </div>
-          </div>
+    <div class="modal-box">
+      <h3 style="color:white; margin-bottom:20px; font-size:16px;">設定</h3>
+      
+      <div style="background:#1f2937; padding:16px; border-radius:8px; border:1px solid #374151; margin-bottom:20px;">
+        <p style="font-size:12px; color:#9ca3af; margin-bottom:12px;">請連結 Google Drive 以啟用儲存功能。</p>
+        <button id="auth-btn" style="width:100%; background:white; color:#111; border:none; padding:8px; border-radius:4px; font-weight:bold; cursor:pointer;">
+          連結 Google 帳戶
+        </button>
       </div>
+
+      <div style="text-align:left; font-size:12px; color:#6b7280; line-height:1.6;">
+        <p>• 檔案位置: Drive > <b>TempForChar</b></p>
+        <p>• 運算核心: Local Multi-Thread</p>
+      </div>
+      
+      <button id="close-settings" style="margin-top:20px; background:none; border:none; color:#6b7280; cursor:pointer; font-size:12px;">關閉</button>
+    </div>
   </div>
 
   <div id="progress-modal" class="modal-overlay">
-      <div class="modal-box" style="padding:40px; display:flex; flex-direction:column; align-items:center; text-align:center;">
-          <div style="position:relative; width:120px; height:120px; margin-bottom:24px;">
-              <svg width="120" height="120" viewBox="0 0 100 100">
-                  <circle cx="50" cy="50" r="45" fill="none" stroke="#1f2937" stroke-width="8"></circle>
-                  <circle id="progress-ring" cx="50" cy="50" r="45" fill="none" stroke="#3b82f6" stroke-width="8" stroke-dasharray="282.7" stroke-dashoffset="282.7" stroke-linecap="round" style="transform: rotate(-90deg); transform-origin: 50% 50%; transition: stroke-dashoffset 0.3s;"></circle>
-              </svg>
-              <div style="position:absolute; inset:0; display:flex; flex-direction:column; align-items:center; justify-content:center;">
-                  <span id="progress-text" style="font-size:24px; font-weight:bold; color:white;">0%</span>
-              </div>
-          </div>
-          <h3 style="color:white; font-size:18px; font-weight:bold; margin-bottom:8px;">處理中...</h3>
-          <p id="progress-detail" style="color:#9ca3af; font-size:12px;">正在初始化</p>
-      </div>
-  </div>
-
-<template id="segment-template">
-    <div class="segment-item glass-panel" style="padding:12px; margin-bottom:8px; border-radius:8px; display:flex; align-items:center; gap:16px; border:1px solid rgba(75, 85, 99, 0.4);">
-        <div class="index-display" style="font-family:monospace; color:#6b7280; font-size:12px;">01</div>
-        <div style="flex:1; display:grid; grid-template-columns: 1fr 1fr; gap:16px;">
-            <div style="position:relative;">
-                <label style="position:absolute; top:-8px; left:8px; background:#030712; padding:0 4px; font-size:9px; color:#6b7280;">START</label>
-                <input type="number" step="0.001" class="seg-start" style="width:100%; background:rgba(17, 24, 39, 0.5); border:1px solid #374151; color:#93c5fd; padding:8px; font-family:monospace; font-size:14px; border-radius:4px;">
-            </div>
-            <div style="position:relative;">
-                <label style="position:absolute; top:-8px; left:8px; background:#030712; padding:0 4px; font-size:9px; color:#6b7280;">END</label>
-                <input type="number" step="0.001" class="seg-end" style="width:100%; background:rgba(17, 24, 39, 0.5); border:1px solid #374151; color:#93c5fd; padding:8px; font-family:monospace; font-size:14px; border-radius:4px;">
-            </div>
+    <div class="modal-box" style="width:280px; padding:30px;">
+      <div style="position:relative; width:100px; height:100px; margin:0 auto 20px;">
+        <svg width="100" height="100" viewBox="0 0 100 100">
+          <circle cx="50" cy="50" r="45" fill="none" stroke="#1f2937" stroke-width="8"></circle>
+          <circle id="progress-ring" class="progress-ring" cx="50" cy="50" r="45" fill="none" stroke="#3b82f6" stroke-width="8" stroke-dasharray="282.7" stroke-dashoffset="282.7"></circle>
+        </svg>
+        <div style="position:absolute; inset:0; display:flex; align-items:center; justify-content:center; color:white; font-weight:bold; font-size:20px;">
+          <span id="progress-text">0%</span>
         </div>
-        <button class="delete-btn" style="color:#4b5563; background:none; border:none; cursor:pointer; padding:4px;"><svg style="width:16px; height:16px;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg></button>
+      </div>
+      <div id="progress-detail" style="color:#9ca3af; font-size:12px;">初始化...</div>
     </div>
-</template>
+  </div>
 
 <script>
 // ==========================================
-// ★★★ 請替換成您的 CLIENT ID ★★★
+// ★★★ 請填入您的 CLIENT ID ★★★
 // ==========================================
-const CLIENT_ID = 'YOUR_GOOGLE_CLIENT_ID'; 
+const CLIENT_ID = 'YOUR_GOOGLE_CLIENT_ID';
 const SCOPES = 'https://www.googleapis.com/auth/drive.file';
 
-// --- VARS ---
+// --- 全域變數 ---
 let tokenClient;
 let accessToken = null;
 let ffmpeg = null;
 let fetchFile = null;
 let isEngineReady = false;
 let currentFile = null;
-let originalFrames = [];
 
-// Logger
-const log = (msg, type='info') => {
-    const p = document.createElement('div');
-    p.textContent = `> ${msg}`;
-    if(type==='error') p.style.color = '#ef4444';
-    if(type==='success') p.style.color = '#4ade80';
-    document.getElementById('logs').appendChild(p);
-    document.getElementById('logs').scrollTop = 9999;
-};
-
-// --- AUTH ---
-function initAuth() {
-    tokenClient = google.accounts.oauth2.initTokenClient({
-        client_id: CLIENT_ID,
-        scope: SCOPES,
-        callback: (resp) => {
-            if (resp.error) throw resp;
-            accessToken = resp.access_token;
-            updateAuthUI(true);
-            toggleSettings(false);
-        },
-    });
-}
-document.getElementById('auth-btn').onclick = () => {
-    if (accessToken) { accessToken = null; updateAuthUI(false); } 
-    else tokenClient.requestAccessToken();
-};
-function updateAuthUI(isLoggedIn) {
-    const btn = document.getElementById('auth-btn');
-    const indicator = document.getElementById('user-status-indicator');
-    if (isLoggedIn) {
-        btn.innerHTML = `<span style="color:#22c55e;">✓ 已連結</span>`;
-        indicator.classList.remove('hidden');
-    } else {
-        btn.innerHTML = `連結 Google 帳戶`;
-        indicator.classList.add('hidden');
-    }
-}
-
-// --- FFMPEG INIT (SINGLE THREAD - STABLE) ---
-// 為了解決 Vercel 安全性與 Worker 404 問題，改回單執行緒
-async function initEngine() {
-    try {
-        log("Init Engine...");
-        const { FFmpeg } = FFmpegWASM;
-        const { fetchFile: ff } = FFmpegUtil;
-        fetchFile = ff;
-        ffmpeg = new FFmpeg();
-
-        // 使用單執行緒版，無需 SharedArrayBuffer，兼容性 100%
-        const baseURL = 'https://cdn.jsdelivr.net/npm/@ffmpeg/ffmpeg@0.12.10/dist/umd';
-        const coreURL = 'https://cdn.jsdelivr.net/npm/@ffmpeg/core@0.12.6/dist/umd/ffmpeg-core.js';
-        const wasmURL = 'https://cdn.jsdelivr.net/npm/@ffmpeg/core@0.12.6/dist/umd/ffmpeg-core.wasm';
-
-        await ffmpeg.load({
-            coreURL: coreURL,
-            wasmURL: wasmURL
-        });
-
-        isEngineReady = true;
-        document.getElementById('engine-status').textContent = "Ready";
-        document.getElementById('engine-dot').style.background = "#22c55e";
-        log("Engine Ready (Stable Mode)", 'success');
-
-    } catch(e) {
-        log(`Init Error: ${e.message}`, 'error');
-        console.error(e);
-    }
-}
-initEngine();
-
-// --- UI LOGIC ---
+// --- 介面邏輯 ---
 const videoEl = document.getElementById('source-video');
-const uploader = document.getElementById('uploader');
-const dropzone = document.getElementById('dropzone');
+const canvasEl = document.getElementById('preview-canvas');
+const ctx = canvasEl.getContext('2d');
 
-uploader.addEventListener('change', (e) => handleFile(e.target.files[0]));
-dropzone.addEventListener('drop', (e) => { e.preventDefault(); if(e.dataTransfer.files.length) handleFile(e.dataTransfer.files[0]); });
-dropzone.addEventListener('dragover', (e) => e.preventDefault());
-
-function handleFile(file) {
-    if(!file) return;
-    currentFile = file;
-    document.getElementById('timeline-empty').classList.add('hidden');
-    videoEl.src = URL.createObjectURL(file);
+// 上傳預覽
+document.getElementById('uploader').onchange = (e) => {
+    const f = e.target.files[0];
+    if(!f) return;
+    currentFile = f;
+    videoEl.src = URL.createObjectURL(f);
     videoEl.load();
-    log(`Loaded: ${file.name}`);
-    
-    document.getElementById('segments-container').innerHTML = '';
-    addSegmentRow(0, 5);
+    videoEl.onloadeddata = updatePreview;
+};
 
-    videoEl.onloadeddata = async () => {
-        const strip = document.getElementById('film-strip');
-        strip.innerHTML = ''; originalFrames = [];
-        const count = Math.min(Math.ceil(videoEl.duration / 0.5), 40);
-        
-        for(let i=0; i<count; i++) {
-            videoEl.currentTime = i * 0.5;
-            await new Promise(r => videoEl.onseeked = r);
-            const cvs = document.createElement('canvas');
-            cvs.width = 160; cvs.height = 90;
-            cvs.className = "timeline-canvas";
-            const ctx = cvs.getContext('2d', { willReadFrequently: true });
-            ctx.drawImage(videoEl, 0, 0, 160, 90);
-            strip.appendChild(cvs);
-            originalFrames.push(ctx.getImageData(0, 0, 160, 90));
-        }
-    };
-}
+// 繪製預覽
+const updatePreview = () => {
+    if(!currentFile) return;
+    canvasEl.width = 480; canvasEl.height = 270;
+    ctx.drawImage(videoEl, 0, 0, 480, 270);
+};
 
-// Preview Logic
-function hexToRgb(hex) { const r = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex); return r ? { r: parseInt(r[1], 16), g: parseInt(r[2], 16), b: parseInt(r[3], 16) } : null; }
-document.getElementById('apply-preview-btn').addEventListener('click', () => {
-    if(!originalFrames.length) return;
-    const keyColor = hexToRgb(document.getElementById('key-color').value);
-    const threshold = parseFloat(document.getElementById('similarity').value) * 441;
-    const blendRange = parseFloat(document.getElementById('blend').value) * 441;
-    const canvases = document.querySelectorAll('.timeline-canvas');
-    
-    canvases.forEach((canvas, idx) => {
-        const ctx = canvas.getContext('2d');
-        const imgData = new ImageData(new Uint8ClampedArray(originalFrames[idx].data), 160, 90);
-        const data = imgData.data;
-        if(document.getElementById('enable-chroma').checked) {
-            for (let i = 0; i < data.length; i += 4) {
-                const dist = Math.sqrt(Math.pow(data[i]-keyColor.r, 2) + Math.pow(data[i+1]-keyColor.g, 2) + Math.pow(data[i+2]-keyColor.b, 2));
-                if (dist < threshold) data[i + 3] = 0;
-                else if (dist < threshold + blendRange) data[i + 3] = ((dist - threshold) / blendRange) * 255;
-            }
-        }
-        ctx.putImageData(imgData, 0, 0);
-    });
+// 綁定輸入事件
+['key-color', 'similarity', 'blend', 'enable-chroma'].forEach(id => {
+    document.getElementById(id).addEventListener('input', updatePreview);
 });
-
 document.getElementById('key-color').addEventListener('input', (e) => document.getElementById('key-color-text').value = e.target.value.toUpperCase());
-const segTpl = document.getElementById('segment-template');
-function addSegmentRow(start, end) {
-    const clone = segTpl.content.cloneNode(true);
-    const item = clone.querySelector('.segment-item');
-    clone.querySelector('.seg-start').value = start.toFixed(3);
-    clone.querySelector('.seg-end').value = end.toFixed(3);
-    clone.querySelector('.delete-btn').onclick = () => { item.remove(); updateIndices(); };
-    document.getElementById('segments-container').appendChild(clone);
-    updateIndices();
-}
-document.getElementById('add-segment-btn').addEventListener('click', () => { const t = videoEl.currentTime||0; addSegmentRow(t, t+5); });
-function updateIndices() { document.querySelectorAll('.index-display').forEach((el, i) => el.innerText = (i+1).toString().padStart(2,'0')); }
 
-// Modals
+// --- Modal 控制 ---
 const settingsModal = document.getElementById('settings-modal');
 const progressModal = document.getElementById('progress-modal');
-const toggleSettings = (s) => settingsModal.classList.toggle('active', s);
-document.getElementById('open-settings-btn').onclick = () => toggleSettings(true);
-document.getElementById('close-settings-btn').onclick = () => toggleSettings(false);
-settingsModal.onclick = (e) => { if(e.target === settingsModal) toggleSettings(false); };
+document.getElementById('open-settings-btn').onclick = () => settingsModal.classList.add('active');
+document.getElementById('close-settings').onclick = () => settingsModal.classList.remove('active');
 
 const setProgress = (p, t) => {
     const off = 282.7 - (p/100)*282.7;
@@ -401,7 +238,55 @@ const setProgress = (p, t) => {
     if(t) document.getElementById('progress-detail').innerText = t;
 };
 
-// Drive Helpers
+// --- Google 登入 ---
+function initAuth() {
+    tokenClient = google.accounts.oauth2.initTokenClient({
+        client_id: CLIENT_ID,
+        scope: SCOPES,
+        callback: (resp) => {
+            if (resp.error) throw resp;
+            accessToken = resp.access_token;
+            document.getElementById('auth-btn').innerText = "✓ 已連結";
+            document.getElementById('auth-indicator').classList.remove('hidden');
+            settingsModal.classList.remove('active');
+        },
+    });
+}
+document.getElementById('auth-btn').onclick = () => {
+    if(!accessToken) tokenClient.requestAccessToken();
+};
+
+// --- FFmpeg 初始化 (Blob Proxy 模式) ---
+(async () => {
+    try {
+        console.log("Loading FFmpeg...");
+        const { FFmpeg } = FFmpegWASM;
+        const { fetchFile: ff } = FFmpegUtil;
+        fetchFile = ff;
+        ffmpeg = new FFmpeg();
+
+        // 使用 Blob Proxy 載入 Worker，避開 Vercel 安全策略限制
+        const baseURL = 'https://cdn.jsdelivr.net/npm/@ffmpeg/core@0.12.6/dist/umd';
+        const workerBlob = await fetch(`${baseURL}/ffmpeg-core.worker.js`).then(r => r.blob());
+        const workerURL = URL.createObjectURL(workerBlob);
+
+        await ffmpeg.load({
+            coreURL: `${baseURL}/ffmpeg-core.js`,
+            wasmURL: `${baseURL}/ffmpeg-core.wasm`,
+            workerURL: workerURL
+        });
+
+        isEngineReady = true;
+        document.getElementById('engine-status').textContent = "Ready";
+        document.getElementById('engine-dot').style.background = "#22c55e";
+        console.log("FFmpeg Ready!");
+    } catch(e) {
+        console.error(e);
+        document.getElementById('engine-status').textContent = "Error";
+    }
+})();
+
+// --- Drive Helpers ---
 async function findOrCreateFolder(name, parentId='root') {
     const q = `'${parentId}' in parents and name='${name}' and mimeType='application/vnd.google-apps.folder' and trashed=false`;
     const r = await fetch(`https://www.googleapis.com/drive/v3/files?q=${encodeURIComponent(q)}`, { headers: { Authorization: `Bearer ${accessToken}` } });
@@ -410,28 +295,30 @@ async function findOrCreateFolder(name, parentId='root') {
     const c = await fetch('https://www.googleapis.com/drive/v3/files', { method: 'POST', headers: { Authorization: `Bearer ${accessToken}`, 'Content-Type': 'application/json' }, body: JSON.stringify({ name, mimeType: 'application/vnd.google-apps.folder', parents: [parentId] }) });
     return (await c.json()).id;
 }
+
 async function uploadToDrive(folderId, filename, blob) {
-    const meta = { name: filename, parents: [folderId] };
+    const metadata = { name: filename, parents: [folderId] };
     const form = new FormData();
-    form.append('metadata', new Blob([JSON.stringify(meta)], { type: 'application/json' }));
+    form.append('metadata', new Blob([JSON.stringify(metadata)], { type: 'application/json' }));
     form.append('file', blob);
     await fetch('https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart', { method: 'POST', headers: { Authorization: `Bearer ${accessToken}` }, body: form });
 }
 
-// MAIN PROCESS
+// --- 主流程 ---
 document.getElementById('process-btn').onclick = async () => {
-    if(!accessToken) return toggleSettings(true) || alert("請先登入");
+    if(!accessToken) return settingsModal.classList.add('active');
     if(!isEngineReady || !currentFile) return alert("系統未就緒");
-    
+
     progressModal.classList.add('active');
-    setProgress(0, "初始化...");
+    setProgress(0, "初始化工作區...");
 
     try {
         const rootId = await findOrCreateFolder("TempForChar");
         const ts = new Date().toISOString().replace(/[-:T.]/g, '').slice(0,14);
+        const sessionId = await findOrCreateFolder(`${ts}_Temp`, rootId);
         const completeId = await findOrCreateFolder("Complete", rootId);
 
-        setProgress(10, "寫入檔案...");
+        setProgress(10, "載入影片...");
         await ffmpeg.writeFile('input.mp4', await fetchFile(currentFile));
 
         const hex = document.getElementById('key-color-text').value.replace('#','0x');
@@ -441,52 +328,48 @@ document.getElementById('process-btn').onclick = async () => {
         const mode = document.querySelector('input[name="output-mode"]:checked').value;
         const filter = doChroma ? `format=rgba,chromakey=${hex}:${sim}:${blend}` : "null";
 
-        const segs = document.querySelectorAll('.segment-item');
-        let total = segs.length;
-        
-        for(let i=0; i<total; i++) {
-            const start = segs[i].querySelector('.seg-start').value;
-            const end = segs[i].querySelector('.seg-end').value;
-            const dur = (parseFloat(end) - parseFloat(start)).toFixed(3);
-            const vName = `seg_${i}_v.webm`;
-            const aName = `seg_${i}_a.mp3`;
+        setProgress(20, "影片轉碼中 (Multi-Thread)...");
+        // 使用 -threads 0 自動分配核心
+        await ffmpeg.exec(['-i','input.mp4','-vf',filter,'-c:v','libvpx-vp9','-b:v','0','-crf','30','-pix_fmt','yuva420p','-threads','0','-preset','ultrafast','-an','output_v.webm']);
+
+        setProgress(60, "上傳影片...");
+        const vData = await ffmpeg.readFile('output_v.webm');
+        const vBlob = new Blob([vData.buffer], {type:'video/webm'});
+
+        if (mode === 'merged') {
+            setProgress(70, "合併音訊...");
+            await ffmpeg.exec(['-i','input.mp4','-vn','-acodec','libmp3lame','-q:a','2','output_a.mp3']);
+            await ffmpeg.exec(['-i','output_v.webm','-i','output_a.mp3','-c','copy','final.webm']);
+            const fData = await ffmpeg.readFile('final.webm');
+            await uploadToDrive(completeId, `Evolumate_${ts}_Merged.webm`, new Blob([fData.buffer], {type:'video/webm'}));
+        } else {
+            // 切片備份到 Temp (可選)
+            // await uploadToDrive(sessionId, `raw_video.webm`, vBlob);
             
-            setProgress(20 + (i/total)*50, `處理片段 ${i+1}...`);
+            // 影片上傳 Complete
+            await uploadToDrive(completeId, `Evolumate_${ts}_Video.webm`, vBlob);
             
-            // Video
-            await ffmpeg.exec(['-ss', start, '-t', dur, '-i', 'input.mp4', '-vf', filter, '-c:v', 'libvpx-vp9', '-b:v', '0', '-crf', '35', '-pix_fmt', 'yuva420p', '-an', vName]);
-            
-            // Upload Video (Async to save time? No, strictly wait to avoid RAM issues)
-            const vData = await ffmpeg.readFile(vName);
-            if(mode === 'split') await uploadToDrive(completeId, `Evolumate_${ts}_${i}_V.webm`, new Blob([vData.buffer], {type:'video/webm'}));
-            
-            // Audio
-            await ffmpeg.exec(['-ss', start, '-t', dur, '-i', 'input.mp4', '-vn', '-acodec', 'libmp3lame', '-q:a', '2', aName]);
-            const aData = await ffmpeg.readFile(aName);
-            if(mode === 'split') await uploadToDrive(completeId, `Evolumate_${ts}_${i}_A.mp3`, new Blob([aData.buffer], {type:'audio/mp3'}));
-            
-            // Merge if needed
-            if(mode === 'merged') {
-                await ffmpeg.exec(['-i', vName, '-i', aName, '-c', 'copy', 'final.webm']);
-                const fData = await ffmpeg.readFile('final.webm');
-                await uploadToDrive(completeId, `Evolumate_${ts}_${i}.webm`, new Blob([fData.buffer], {type:'video/webm'}));
-                await ffmpeg.deleteFile('final.webm');
-            }
-            
-            // Cleanup
-            await ffmpeg.deleteFile(vName);
-            await ffmpeg.deleteFile(aName);
+            setProgress(80, "處理音訊...");
+            await ffmpeg.exec(['-i','input.mp4','-vn','-acodec','libmp3lame','-q:a','2','output_a.mp3']);
+            const aData = await ffmpeg.readFile('output_a.mp3');
+            await uploadToDrive(completeId, `Evolumate_${ts}_Audio.mp3`, new Blob([aData.buffer], {type:'audio/mp3'}));
         }
 
         setProgress(100, "完成！");
-        alert("成功！檔案已上傳。");
+        alert("成功！檔案已上傳至 Drive。");
 
     } catch(e) {
         console.error(e);
         alert("錯誤: " + e.message);
     } finally {
         progressModal.classList.remove('active');
-        try { await ffmpeg.deleteFile('input.mp4'); } catch(e){}
+        // Cleanup
+        try {
+            await ffmpeg.deleteFile('input.mp4');
+            await ffmpeg.deleteFile('output_v.webm');
+            await ffmpeg.deleteFile('output_a.mp3');
+            await ffmpeg.deleteFile('final.webm');
+        } catch(e){}
     }
 };
 
