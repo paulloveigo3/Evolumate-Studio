@@ -14,8 +14,6 @@
   ::-webkit-scrollbar-thumb { background: #374151; border-radius: 3px; }
   .glass-panel { background: rgba(31, 41, 55, 0.7); backdrop-filter: blur(10px); border: 1px solid rgba(75, 85, 99, 0.4); }
   .progress-ring__circle { transition: stroke-dashoffset 0.35s; transform: rotate(-90deg); transform-origin: 50% 50%; }
-  
-  /* 設定按鈕動畫 */
   .settings-btn { transition: transform 0.3s ease; }
   .settings-btn:hover { transform: rotate(90deg); }
 </style>
@@ -27,15 +25,12 @@
       <button id="open-settings-btn" class="settings-btn w-9 h-9 rounded-full bg-gray-800 border border-gray-600 flex items-center justify-center hover:bg-gray-700 hover:border-blue-500 hover:text-blue-400 transition shadow-lg group">
           <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
       </button>
-      
       <div class="h-6 w-px bg-gray-700 mx-2"></div>
-
       <div class="flex items-center gap-2">
         <div class="w-3 h-3 rounded-full bg-gradient-to-r from-blue-500 to-purple-500 shadow-lg shadow-blue-500/50"></div>
         <h1 class="text-sm font-bold tracking-widest text-gray-300">EVOLUMATE <span class="text-blue-500">PRO</span></h1>
       </div>
     </div>
-
     <div class="flex items-center gap-4">
         <div class="text-xs font-mono text-gray-500 flex items-center gap-2 border-r border-gray-700 pr-4">
             <span class="w-2 h-2 rounded-full bg-red-500 transition-colors duration-500 shadow-sm" id="engine-dot"></span>
@@ -114,19 +109,11 @@
 
   <div id="settings-modal" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 hidden flex items-center justify-center transition-opacity opacity-0 pointer-events-none">
       <div class="bg-gray-900 border border-gray-700 rounded-2xl w-full max-w-md mx-4 shadow-2xl transform scale-95 transition-transform duration-200" id="settings-content">
-          
           <div class="flex justify-between items-center px-6 py-4 border-b border-gray-800">
-              <h3 class="text-lg font-bold text-white flex items-center gap-2">
-                  <svg class="w-5 h-5 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
-                  工具設定 (Settings)
-              </h3>
-              <button id="close-settings-btn" class="text-gray-500 hover:text-white transition">
-                  <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
-              </button>
+              <h3 class="text-lg font-bold text-white flex items-center gap-2">工具設定 (Settings)</h3>
+              <button id="close-settings-btn" class="text-gray-500 hover:text-white transition"><svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg></button>
           </div>
-
           <div class="p-6 space-y-6">
-              
               <div class="bg-gray-800/50 rounded-lg p-4 border border-gray-700">
                   <h4 class="text-xs font-bold text-gray-400 uppercase mb-3">Google 帳戶連結</h4>
                   <p class="text-xs text-gray-500 mb-4">連結您的 Google Drive 以自動儲存生成結果。</p>
@@ -135,22 +122,11 @@
                       <span>連結 Google 帳戶</span>
                   </button>
               </div>
-
               <div>
                   <h4 class="text-xs font-bold text-gray-400 uppercase mb-3">關於本工具</h4>
                   <ul class="space-y-2 text-xs text-gray-400">
-                      <li class="flex gap-2">
-                          <svg class="w-4 h-4 text-blue-500 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-                          <span>檔案將自動存入 Drive > <span class="text-white">TempForChar</span> 資料夾。</span>
-                      </li>
-                      <li class="flex gap-2">
-                          <svg class="w-4 h-4 text-green-500 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-                          <span>支援高解析度影片，使用本地算力，無流量限制。</span>
-                      </li>
-                      <li class="flex gap-2">
-                          <svg class="w-4 h-4 text-yellow-500 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-                          <span>暫存資料夾 (YYYYMMDD_Temp) 建議定期手動清理。</span>
-                      </li>
+                      <li>• 檔案將存入 Drive > TempForChar</li>
+                      <li>• 支援多執行緒加速</li>
                   </ul>
               </div>
           </div>
@@ -172,7 +148,6 @@
           </div>
           <div class="text-center w-full">
               <div id="progress-detail" class="text-sm text-gray-300 font-medium truncate">正在準備環境...</div>
-              <div class="text-xs text-gray-500 mt-1">處理完成後將自動上傳</div>
           </div>
       </div>
   </div>
@@ -182,12 +157,9 @@
 // ★★★ 請替換成您的 CLIENT ID ★★★
 // ==========================================
 const CLIENT_ID = 'YOUR_GOOGLE_CLIENT_ID'; 
-// 1. 去 Google Cloud Console
-// 2. 建立專案 -> 啟用 Drive API -> 建立 OAuth Client ID (Web App)
-// 3. 將 'http://localhost:5500' (測試用) 和您的 Vercel 網址加入 "已授權的 JavaScript 來源"
 const SCOPES = 'https://www.googleapis.com/auth/drive.file';
 
-// --- GLOBAL VARS ---
+// --- VARS ---
 let tokenClient;
 let accessToken = null;
 let ffmpeg = null;
@@ -195,39 +167,7 @@ let fetchFile = null;
 let isEngineReady = false;
 let currentFile = null;
 
-// --- SETTINGS MODAL LOGIC ---
-const settingsBtn = document.getElementById('open-settings-btn');
-const settingsModal = document.getElementById('settings-modal');
-const closeSettingsBtn = document.getElementById('close-settings-btn');
-const settingsContent = document.getElementById('settings-content');
-
-const toggleSettings = (show) => {
-    if(show) {
-        settingsModal.classList.remove('hidden');
-        // Small delay to allow transition
-        setTimeout(() => {
-            settingsModal.classList.remove('opacity-0', 'pointer-events-none');
-            settingsContent.classList.remove('scale-95');
-            settingsContent.classList.add('scale-100');
-        }, 10);
-    } else {
-        settingsModal.classList.add('opacity-0', 'pointer-events-none');
-        settingsContent.classList.remove('scale-100');
-        settingsContent.classList.add('scale-95');
-        setTimeout(() => {
-            settingsModal.classList.add('hidden');
-        }, 200);
-    }
-};
-
-settingsBtn.addEventListener('click', () => toggleSettings(true));
-closeSettingsBtn.addEventListener('click', () => toggleSettings(false));
-// 點擊背景關閉
-settingsModal.addEventListener('click', (e) => {
-    if(e.target === settingsModal) toggleSettings(false);
-});
-
-// --- AUTH LOGIC (Inside Modal) ---
+// --- AUTH ---
 function initAuth() {
     tokenClient = google.accounts.oauth2.initTokenClient({
         client_id: CLIENT_ID,
@@ -236,92 +176,45 @@ function initAuth() {
             if (resp.error) throw resp;
             accessToken = resp.access_token;
             updateAuthUI(true);
-            toggleSettings(false); // Auto close on login
+            toggleSettings(false);
         },
     });
 }
-
-// 綁定視窗內的按鈕
 document.getElementById('auth-btn').onclick = () => {
-    if (accessToken) {
-        // 登出邏輯 (僅清除前端狀態)
-        accessToken = null;
-        updateAuthUI(false);
-    } else {
-        tokenClient.requestAccessToken();
-    }
+    if (accessToken) { accessToken = null; updateAuthUI(false); } 
+    else tokenClient.requestAccessToken();
 };
-
 function updateAuthUI(isLoggedIn) {
     const btn = document.getElementById('auth-btn');
     const indicator = document.getElementById('user-status-indicator');
-    
     if (isLoggedIn) {
-        btn.innerHTML = `<svg class="w-5 h-5 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg><span>解除連結 / 登出</span>`;
-        btn.classList.replace('bg-white', 'bg-gray-700');
-        btn.classList.replace('text-gray-800', 'text-white');
-        indicator.classList.remove('hidden'); // 顯示頂部綠色指示燈
+        btn.innerHTML = `<span class="text-green-500 font-bold">✓ 已連結</span>`;
+        indicator.classList.remove('hidden');
     } else {
-        btn.innerHTML = `<svg class="w-5 h-5" viewBox="0 0 24 24" fill="currentColor"><path d="M12.545,10.239v3.821h5.445c-0.712,2.315-2.647,3.972-5.445,3.972c-3.332,0-6.033-2.701-6.033-6.032s2.701-6.032,6.033-6.032c1.498,0,2.866,0.549,3.921,1.453l2.814-2.814C17.503,2.988,15.139,2,12.545,2C7.021,2,2.543,6.477,2.543,12s4.478,10,10.002,10c8.396,0,10.249-7.85,9.426-11.748L12.545,10.239z"/></svg><span>連結 Google 帳戶</span>`;
-        btn.classList.replace('bg-gray-700', 'bg-white');
-        btn.classList.replace('text-white', 'text-gray-800');
+        btn.innerHTML = `<span>連結 Google 帳戶</span>`;
         indicator.classList.add('hidden');
     }
 }
 
-// --- DRIVE API HELPERS ---
-async function findOrCreateFolder(name, parentId = 'root') {
-    const q = `'${parentId}' in parents and name='${name}' and mimeType='application/vnd.google-apps.folder' and trashed=false`;
-    const resp = await fetch(`https://www.googleapis.com/drive/v3/files?q=${encodeURIComponent(q)}`, {
-        headers: { Authorization: `Bearer ${accessToken}` }
-    });
-    const data = await resp.json();
-    
-    if (data.files && data.files.length > 0) {
-        return data.files[0].id;
-    } else {
-        const createResp = await fetch('https://www.googleapis.com/drive/v3/files', {
-            method: 'POST',
-            headers: {
-                Authorization: `Bearer ${accessToken}`,
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({ name: name, mimeType: 'application/vnd.google-apps.folder', parents: [parentId] })
-        });
-        const folder = await createResp.json();
-        return folder.id;
-    }
-}
-
-async function uploadToDrive(folderId, filename, blob) {
-    const metadata = { name: filename, parents: [folderId] };
-    const form = new FormData();
-    form.append('metadata', new Blob([JSON.stringify(metadata)], { type: 'application/json' }));
-    form.append('file', blob);
-
-    const resp = await fetch('https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart', {
-        method: 'POST',
-        headers: { Authorization: `Bearer ${accessToken}` },
-        body: form
-    });
-    if (!resp.ok) throw new Error('Upload failed');
-}
-
-// --- FFMPEG ENGINE (MULTI-THREAD) ---
+// --- FFMPEG INIT (BLOB PROXY FIX) ---
 (async () => {
     try {
-        console.log("Loading FFmpeg MT...");
+        console.log("Loading Engine with Blob Proxy...");
         const { FFmpeg } = FFmpegWASM;
         const { fetchFile: ff } = FFmpegUtil;
         fetchFile = ff;
         ffmpeg = new FFmpeg();
 
-        // 使用 Multi-thread CDN (效能全開!)
+        // 1. 下載 Worker 並轉為 Blob，繞過 CORS/COEP 限制
         const baseURL = 'https://cdn.jsdelivr.net/npm/@ffmpeg/core@0.12.6/dist/umd';
+        const workerBlob = await fetch(`${baseURL}/ffmpeg-core.worker.js`).then(r => r.blob());
+        const workerURL = URL.createObjectURL(workerBlob);
+
+        // 2. 載入 (使用 Blob URL 作為 Worker)
         await ffmpeg.load({
             coreURL: `${baseURL}/ffmpeg-core.js`,
             wasmURL: `${baseURL}/ffmpeg-core.wasm`,
-            workerURL: `${baseURL}/ffmpeg-core.worker.js` // 關鍵: 載入 Worker
+            workerURL: workerURL // 關鍵修正
         });
 
         isEngineReady = true;
@@ -329,143 +222,109 @@ async function uploadToDrive(folderId, filename, blob) {
         document.getElementById('engine-dot').classList.replace('bg-red-500', 'bg-green-500');
     } catch(e) {
         console.error(e);
-        alert("引擎載入失敗。請確認您是在 HTTPS 環境下開啟 (Vercel)，且 Header 設定正確。");
+        alert("引擎載入失敗: " + e.message);
     }
 })();
 
-// --- UI LOGIC ---
+// --- DRIVE & PROCESS LOGIC ---
+// (Drive API Helpers remain the same as previous)
+async function findOrCreateFolder(name, parentId='root') {
+    const q = `'${parentId}' in parents and name='${name}' and mimeType='application/vnd.google-apps.folder' and trashed=false`;
+    const r = await fetch(`https://www.googleapis.com/drive/v3/files?q=${encodeURIComponent(q)}`, { headers: { Authorization: `Bearer ${accessToken}` } });
+    const d = await r.json();
+    if (d.files.length) return d.files[0].id;
+    const c = await fetch('https://www.googleapis.com/drive/v3/files', { method: 'POST', headers: { Authorization: `Bearer ${accessToken}`, 'Content-Type': 'application/json' }, body: JSON.stringify({ name, mimeType: 'application/vnd.google-apps.folder', parents: [parentId] }) });
+    return (await c.json()).id;
+}
+async function uploadToDrive(folderId, filename, blob) {
+    const meta = { name: filename, parents: [folderId] };
+    const form = new FormData();
+    form.append('metadata', new Blob([JSON.stringify(meta)], { type: 'application/json' }));
+    form.append('file', blob);
+    await fetch('https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart', { method: 'POST', headers: { Authorization: `Bearer ${accessToken}` }, body: form });
+}
+
+// UI Logic
 const videoEl = document.getElementById('source-video');
 const canvasEl = document.getElementById('preview-canvas');
 const ctx = canvasEl.getContext('2d');
-
 document.getElementById('uploader').onchange = (e) => {
-    const file = e.target.files[0];
-    if(!file) return;
-    currentFile = file;
-    videoEl.src = URL.createObjectURL(file);
+    const f = e.target.files[0];
+    if(!f) return;
+    currentFile = f;
+    videoEl.src = URL.createObjectURL(f);
     videoEl.load();
-    videoEl.onloadeddata = updatePreview;
+    videoEl.onloadeddata = () => ctx.drawImage(videoEl, 0, 0, 480, 270);
 };
 
-const updatePreview = () => {
-    if(!currentFile) return;
-    canvasEl.width = 480; canvasEl.height = 270;
-    ctx.drawImage(videoEl, 0, 0, 480, 270);
+// Modals
+const toggleSettings = (s) => {
+    const m = document.getElementById('settings-modal');
+    const c = document.getElementById('settings-content');
+    if(s) { m.classList.remove('hidden'); setTimeout(() => { m.classList.remove('opacity-0','pointer-events-none'); c.classList.remove('scale-95'); }, 10); }
+    else { m.classList.add('opacity-0','pointer-events-none'); c.classList.add('scale-95'); setTimeout(() => m.classList.add('hidden'), 200); }
+};
+document.getElementById('open-settings-btn').onclick = () => toggleSettings(true);
+document.getElementById('close-settings-btn').onclick = () => toggleSettings(false);
+
+const setProgress = (p, t, s) => {
+    const off = 282.7 - (p/100)*282.7;
+    document.getElementById('progress-ring').style.strokeDashoffset = off;
+    document.getElementById('progress-text').innerText = Math.round(p)+'%';
+    if(t) document.getElementById('progress-detail').innerText = t;
+    if(s) document.getElementById('progress-status').innerText = s;
 };
 
-['key-color', 'similarity', 'blend', 'enable-chroma'].forEach(id => {
-    document.getElementById(id).addEventListener('input', updatePreview);
-});
-document.getElementById('key-color').addEventListener('input', (e) => document.getElementById('key-color-text').value = e.target.value.toUpperCase());
-
-// --- PROGRESS BAR ---
-const modal = document.getElementById('progress-modal');
-const ring = document.getElementById('progress-ring');
-const progText = document.getElementById('progress-text');
-const progDetail = document.getElementById('progress-detail');
-const circumference = 45 * 2 * Math.PI;
-
-function setProgress(percent, text, status) {
-    const offset = circumference - (percent / 100) * circumference;
-    ring.style.strokeDashoffset = offset;
-    progText.textContent = `${Math.round(percent)}%`;
-    if(text) progDetail.textContent = text;
-    if(status) document.getElementById('progress-status').textContent = status;
-}
-
-// --- MAIN PROCESS ---
+// Main Process
 document.getElementById('process-btn').onclick = async () => {
-    if(!accessToken) {
-        // 如果沒登入，自動打開設定視窗
-        toggleSettings(true);
-        alert("請先連結您的 Google 帳戶以儲存檔案。");
-        return;
-    }
-    if(!isEngineReady || !currentFile) return alert("系統尚未就緒或未選擇影片");
-
-    modal.classList.remove('hidden');
-    setProgress(0, "正在準備工作區...", "INITIALIZING");
+    if(!accessToken) return toggleSettings(true) || alert("請先登入");
+    if(!isEngineReady || !currentFile) return alert("系統未就緒");
+    
+    document.getElementById('progress-modal').classList.remove('hidden');
+    setProgress(0, "準備中...", "INIT");
 
     try {
-        // 1. Create Folders
         const rootId = await findOrCreateFolder("TempForChar");
-        const timestamp = new Date().toISOString().replace(/[-:T.]/g, '').slice(0, 14);
-        const sessionId = await findOrCreateFolder(`${timestamp}_Temp`, rootId);
+        const ts = new Date().toISOString().replace(/[-:T.]/g, '').slice(0,14);
         const completeId = await findOrCreateFolder("Complete", rootId);
-        
-        console.log("Folders Ready:", { rootId, sessionId, completeId });
 
-        // 2. Load File
-        setProgress(5, "載入影片至記憶體...", "LOADING");
+        setProgress(10, "載入影片...", "LOADING");
         await ffmpeg.writeFile('input.mp4', await fetchFile(currentFile));
 
-        // 3. Parameters
         const hex = document.getElementById('key-color-text').value.replace('#','0x');
         const sim = document.getElementById('similarity').value;
         const blend = document.getElementById('blend').value;
         const doChroma = document.getElementById('enable-chroma').checked;
-        const outputMode = document.querySelector('input[name="output-mode"]:checked').value;
+        const mode = document.querySelector('input[name="output-mode"]:checked').value;
+        const filter = doChroma ? `format=rgba,chromakey=${hex}:${sim}:${blend}` : "null";
 
-        // Filter
-        let filter = "null";
-        if(doChroma) filter = `format=rgba,chromakey=${hex}:${sim}:${blend}`;
+        setProgress(20, "轉碼中 (Multi-Thread)...", "ENCODING");
+        await ffmpeg.exec(['-i','input.mp4','-vf',filter,'-c:v','libvpx-vp9','-b:v','0','-crf','30','-pix_fmt','yuva420p','-threads','0','-preset','ultrafast','-an','out_v.webm']);
 
-        // 4. Processing Video
-        setProgress(10, "正在轉碼影片 (高效能模式)...", "ENCODING");
-        
-        // 多執行緒全速運轉 (-threads 0)
-        await ffmpeg.exec([
-            '-i', 'input.mp4',
-            '-vf', filter,
-            '-c:v', 'libvpx-vp9', '-b:v', '0', '-crf', '30',
-            '-pix_fmt', 'yuva420p',
-            '-threads', '0', 
-            '-preset', 'ultrafast',
-            '-an',
-            'output_video.webm'
-        ]);
-
-        // Upload Video
-        setProgress(60, "上傳影片至雲端...", "UPLOADING");
-        const vData = await ffmpeg.readFile('output_video.webm');
-        const vBlob = new Blob([vData.buffer], {type: 'video/webm'});
-        
-        if (outputMode === 'merged') {
-            // Merged Mode: Need Audio first
-            setProgress(70, "合併音訊...", "MERGING");
-            await ffmpeg.exec(['-i', 'input.mp4', '-vn', '-acodec', 'libmp3lame', '-q:a', '2', 'output_audio.mp3']);
-            await ffmpeg.exec(['-i', 'output_video.webm', '-i', 'output_audio.mp3', '-c', 'copy', 'final.webm']);
-            
-            const fData = await ffmpeg.readFile('final.webm');
-            const fBlob = new Blob([fData.buffer], {type: 'video/webm'});
-            await uploadToDrive(completeId, `Evolumate_${timestamp}_Merged.webm`, fBlob);
-            
+        setProgress(70, "上傳影片...", "UPLOADING");
+        const vData = await ffmpeg.readFile('out_v.webm');
+        if(mode === 'split') {
+            await uploadToDrive(completeId, `Evolumate_${ts}_Video.webm`, new Blob([vData.buffer], {type:'video/webm'}));
+            setProgress(85, "處理音訊...", "AUDIO");
+            await ffmpeg.exec(['-i','input.mp4','-vn','-acodec','libmp3lame','-q:a','2','out_a.mp3']);
+            const aData = await ffmpeg.readFile('out_a.mp3');
+            await uploadToDrive(completeId, `Evolumate_${ts}_Audio.mp3`, new Blob([aData.buffer], {type:'audio/mp3'}));
         } else {
-            // Split Mode
-            await uploadToDrive(completeId, `Evolumate_${timestamp}_Video.webm`, vBlob);
-            
-            setProgress(80, "處理並上傳音訊...", "AUDIO");
-            await ffmpeg.exec(['-i', 'input.mp4', '-vn', '-acodec', 'libmp3lame', '-q:a', '2', 'output_audio.mp3']);
-            const aData = await ffmpeg.readFile('output_audio.mp3');
-            const aBlob = new Blob([aData.buffer], {type: 'audio/mp3'});
-            await uploadToDrive(completeId, `Evolumate_${timestamp}_Audio.mp3`, aBlob);
+            setProgress(80, "合併音訊...", "MERGING");
+            await ffmpeg.exec(['-i','input.mp4','-vn','-acodec','libmp3lame','-q:a','2','out_a.mp3']);
+            await ffmpeg.exec(['-i','out_v.webm','-i','out_a.mp3','-c','copy','final.webm']);
+            const fData = await ffmpeg.readFile('final.webm');
+            await uploadToDrive(completeId, `Evolumate_${ts}_Merged.webm`, new Blob([fData.buffer], {type:'video/webm'}));
         }
 
         setProgress(100, "完成！", "DONE");
-        alert("處理完成！檔案已存入 Google Drive 的 TempForChar/Complete 資料夾。");
-
+        alert("成功！檔案已上傳至 Drive。");
     } catch(e) {
         console.error(e);
-        alert("發生錯誤: " + e.message);
+        alert("錯誤: " + e.message);
     } finally {
-        modal.classList.add('hidden');
-        // Cleanup
-        try {
-            await ffmpeg.deleteFile('input.mp4');
-            await ffmpeg.deleteFile('output_video.webm');
-            await ffmpeg.deleteFile('output_audio.mp3');
-            await ffmpeg.deleteFile('final.webm');
-        } catch(e){}
+        document.getElementById('progress-modal').classList.add('hidden');
+        try { await ffmpeg.deleteFile('input.mp4'); await ffmpeg.deleteFile('out_v.webm'); } catch(e){}
     }
 };
 
