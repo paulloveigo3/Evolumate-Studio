@@ -2,286 +2,299 @@
 <html lang="zh-TW">
 <head>
 <meta charset="UTF-8">
-<title>Evolumate Studio - Pro</title>
+<title>Evolumate Studio - Pro / Modern UI</title>
 <script src="https://unpkg.com/coi-serviceworker/coi-serviceworker.min.js"></script>
 <script src="https://accounts.google.com/gsi/client" async defer></script>
-<script src="https://cdn.jsdelivr.net/npm/@ffmpeg/ffmpeg@0.12.10/dist/umd/ffmpeg.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/@ffmpeg/util@0.12.1/dist/umd/index.js"></script>
 
 <style>
-/* --- 純 CSS 樣式 (源自 039_pure.html) --- */
-
-/* 1. 滾動條 */
+/* * ==========================================
+ * STYLE.CSS (已整合)
+ * ==========================================
+ */
 ::-webkit-scrollbar { width: 6px; height: 6px; }
 ::-webkit-scrollbar-track { background: #111827; }
 ::-webkit-scrollbar-thumb { background: #374151; border-radius: 3px; }
 ::-webkit-scrollbar-thumb:hover { background: #4b5563; }
 
-/* 2. 通用類別 */
 .transparency-grid {
   background-image: linear-gradient(45deg, #2a2a2a 25%, transparent 25%), linear-gradient(-45deg, #2a2a2a 25%, transparent 25%), linear-gradient(45deg, transparent 75%, #2a2a2a 75%), linear-gradient(-45deg, transparent 75%, #2a2a2a 75%);
-  background-size: 20px 20px; background-color: #1f1f1f;
+  background-size: 20px 20px;
+  background-color: #1f1f1f;
 }
-.glass-panel { background: rgba(31, 41, 55, 0.7); backdrop-filter: blur(10px); border: 1px solid rgba(75, 85, 99, 0.4); }
+.glass-panel { 
+  background: rgba(31, 41, 55, 0.7); 
+  backdrop-filter: blur(10px); 
+  border: 1px solid rgba(75, 85, 99, 0.4); 
+}
 @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
 .loader { border-top-color: #3b82f6; animation: spin 1s linear infinite; }
-.timeline-canvas { height: 100%; cursor: pointer; border-right: 1px solid #4b5563; transition: transform 0.1s; }
-.hidden { display: none !important; }
+.timeline-canvas { height: 100%; cursor: pointer; border-right: 1px solid #4b5563; }
 
-/* 3. 佈局與元件 */
-body { margin: 0; background-color: #030712; color: #e5e7eb; height: 100vh; overflow: hidden; font-family: sans-serif; display: flex; flex-direction: column; }
+/* 基礎佈局 */
+.m-body { background-color: #030712; color: #e5e7eb; height: 100vh; width: 100vw; overflow: hidden; font-family: sans-serif; display: flex; flex-direction: column; }
 
-/* Header */
-.m-header { height: 3rem; border-bottom: 1px solid #1f2937; display: flex; align-items: center; justify-content: space-between; padding: 0 1.5rem; background-color: #111827; flex-shrink: 0; z-index: 20; }
-.m-header-left { display: flex; align-items: center; gap: 1rem; }
-.m-logo-group { display: flex; align-items: center; gap: 0.5rem; }
+/* 頁首 */
+.m-header { height: 3rem; border-bottom: 1px solid #1f2937; display: flex; align-items: center; justify-content: space-between; padding-left: 1.5rem; padding-right: 1.5rem; background-color: #111827; flex-shrink: 0; z-index: 20; }
+.m-header-group { display: flex; align-items: center; gap: 0.5rem; }
 .m-logo-dot { width: 0.75rem; height: 0.75rem; border-radius: 9999px; background-image: linear-gradient(to right, #3b82f6, #9333ea); }
-.m-logo-text { font-size: 0.875rem; font-weight: 700; letter-spacing: 0.1em; color: #d1d5db; margin: 0; }
-.m-logo-text span { color: #60a5fa; }
-
-/* 設定按鈕 */
-.m-settings-btn { width: 2rem; height: 2rem; border-radius: 50%; background: #1f2937; border: 1px solid #374151; color: #9ca3af; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: 0.3s; }
-.m-settings-btn:hover { color: #3b82f6; border-color: #3b82f6; transform: rotate(90deg); }
-
-/* 狀態列 */
+.m-logo-text { font-size: 0.875rem; font-weight: 700; letter-spacing: 0.1em; color: #d1d5db; }
+.m-logo-text-sub { color: #4b5563; }
 .m-status-group { display: flex; align-items: center; gap: 1rem; }
-.m-auth-status { font-size: 0.75rem; color: #4ade80; display: flex; align-items: center; gap: 0.375rem; }
 .m-engine-status { font-size: 0.75rem; font-family: monospace; color: #6b7280; display: flex; align-items: center; gap: 0.5rem; border-right: 1px solid #374151; padding-right: 1rem; }
-.m-status-dot { width: 0.5rem; height: 0.5rem; border-radius: 9999px; background-color: #ef4444; transition: 0.5s; box-shadow: 0 0 8px rgba(239,68,68,0.5); }
+.m-status-dot { width: 0.5rem; height: 0.5rem; border-radius: 9999px; background-color: #ef4444; transition-property: background-color; transition-duration: 500ms; }
 .m-status-dot.ready { background-color: #22c55e; box-shadow: 0 0 8px rgba(34,197,94,0.5); }
 
-/* 主內容網格 */
-.m-main-content { flex: 1; display: grid; grid-template-columns: 320px 1fr; gap: 0; overflow: hidden; }
+/* 主要內容區 */
+.m-main-content { flex: 1; display: grid; grid-template-columns: repeat(12, minmax(0, 1fr)); gap: 0; overflow: hidden; }
 
-/* 左側欄 */
-.m-aside { background-color: #111827; border-right: 1px solid #1f2937; display: flex; flex-direction: column; z-index: 10; box-shadow: 5px 0 15px rgba(0,0,0,0.3); }
+/* 側邊欄 (Aside) */
+.m-aside { grid-column: span 3 / span 3; background-color: #111827; border-right: 1px solid #1f2937; display: flex; flex-direction: column; z-index: 10; box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1); }
+.m-aside-section-top { padding: 1rem; border-bottom: 1px solid #1f2937; display: flex; flex-direction: column; }
+.m-section-title { font-size: 0.75rem; font-weight: 700; color: #6b7280; text-transform: uppercase; margin-bottom: 0.5rem; letter-spacing: 0.05em; }
 
-/* 上傳區 */
-.m-aside-section { padding: 1rem; border-bottom: 1px solid #1f2937; }
-.m-section-title { font-size: 0.75rem; font-weight: 700; color: #6b7280; text-transform: uppercase; letter-spacing: 0.05em; margin: 0 0 0.5rem 0; display: flex; justify-content: space-between; align-items: center; }
-.title-blue { color: #60a5fa; }
-.title-green { color: #4ade80; }
-
-.m-dropzone { height: 100px; border: 2px dashed #374151; border-radius: 0.75rem; background-color: rgba(31, 41, 55, 0.5); transition: 0.2s; cursor: pointer; display: flex; flex-direction: column; align-items: center; justify-content: center; position: relative; overflow: hidden; }
+/* 拖曳區 */
+.m-dropzone { height: 80px; border: 2px dashed #374151; border-radius: 0.75rem; background-color: rgba(31, 41, 55, 0.5); transition: background-color 150ms ease-in-out; cursor: pointer; display: flex; flex-direction: column; align-items: center; justify-content: center; position: relative; overflow: hidden; }
 .m-dropzone:hover { background-color: #1f2937; border-color: #3b82f6; }
-.m-dropzone input { position: absolute; inset: 0; opacity: 0; cursor: pointer; }
-.m-dropzone svg { width: 2rem; height: 2rem; color: #4b5563; margin-bottom: 0.5rem; }
-.m-dropzone p { font-size: 0.625rem; color: #9ca3af; margin: 0; font-weight: 500; }
+.m-dropzone-input { position: absolute; inset: 0; opacity: 0; cursor: pointer; z-index: 10; }
+.m-dropzone-icon { width: 1.5rem; height: 1.5rem; color: #4b5563; margin-bottom: 0.25rem; }
+.m-dropzone-text { font-size: 0.625rem; color: #9ca3af; font-weight: 500; }
 
-/* 參數控制 */
-.m-params-container { flex: 1; overflow-y: auto; padding: 1rem; border-bottom: 1px solid #1f2937; display: flex; flex-direction: column; gap: 1rem; }
-.m-control-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.25rem; font-size: 0.625rem; color: #9ca3af; }
-.m-control-val { color: #60a5fa; font-family: monospace; }
+/* 參數區 */
+.m-aside-section-params { flex: 1; padding: 1rem; display: flex; flex-direction: column; background-color: #111827; border-bottom: 1px solid #1f2937; position: relative; overflow: hidden; }
+.m-params-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; }
+.m-params-title { font-size: 0.75rem; font-weight: 700; color: #60a5fa; text-transform: uppercase; letter-spacing: 0.05em; }
+.m-toggle-label { position: relative; display: inline-flex; align-items: center; cursor: pointer; }
+.m-toggle-input { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0, 0, 0, 0); border-width: 0; }
+.m-toggle-slider { width: 2rem; height: 1rem; background-color: #374151; border-radius: 9999px; transition: background-color 150ms ease-in-out; position: relative; }
+.m-toggle-slider::after { content: ''; position: absolute; top: 0px; left: 0px; background-color: white; border: 1px solid #d1d5db; border-radius: 9999px; height: 1rem; width: 1rem; transition: transform 150ms ease-in-out; }
+.m-toggle-input:checked + .m-toggle-slider { background-color: #2563eb; }
+.m-toggle-input:checked + .m-toggle-slider::after { transform: translateX(100%); }
 
-/* Inputs */
-input[type="color"] { width: 2.5rem; height: 2rem; padding: 0; border: 1px solid #4b5563; background: none; cursor: pointer; border-radius: 0.25rem; }
-input[type="text"] { flex: 1; background-color: #1f2937; border: 1px solid #374151; border-radius: 0.25rem; font-size: 0.75rem; font-family: monospace; padding: 0 0.75rem; color: white; height: 2rem; outline: none; text-transform: uppercase; }
-input[type="range"] { width: 100%; height: 0.25rem; background-color: #374151; border-radius: 99px; appearance: none; cursor: pointer; display: block; }
-input[type="range"]::-webkit-slider-thumb { appearance: none; width: 0.875rem; height: 0.875rem; background: #3b82f6; border-radius: 50%; transition: 0.2s; }
-input[type="range"]::-webkit-slider-thumb:hover { transform: scale(1.2); }
-input[type="checkbox"] { width: 1rem; height: 1rem; accent-color: #3b82f6; cursor: pointer; }
+.m-params-list { flex: 1; overflow-y: auto; padding-right: 0.25rem; display: flex; flex-direction: column; gap: 1rem; }
+.m-param-group { margin-bottom: 0.5rem; }
+.m-param-label { font-size: 0.625rem; color: #9ca3af; text-transform: uppercase; display: block; margin-bottom: 0.25rem; }
+.m-color-input-group { display: flex; gap: 0.5rem; }
+.m-color-picker { height: 2rem; width: 2.5rem; cursor: pointer; border: 0; padding: 0; background-color: transparent; }
+.m-color-text-input { flex: 1; background-color: #1f2937; border: 1px solid #374151; border-radius: 0.25rem; font-size: 0.75rem; font-family: monospace; padding-left: 0.75rem; color: white; outline: none; text-transform: uppercase; height: 2rem; }
+.m-range-label-group { display: flex; justify-content: space-between; font-size: 0.625rem; margin-bottom: 0.25rem; }
+.m-range-label-text { color: #9ca3af; }
+.m-range-input { width: 100%; height: 0.25rem; background-color: #374151; border-radius: 0.5rem; appearance: none; cursor: pointer; accent-color: #3b82f6; }
 
-/* 按鈕 */
-.m-btn { width: 100%; padding: 0.75rem; border-radius: 0.5rem; font-weight: 700; font-size: 0.875rem; cursor: pointer; transition: 0.2s; border: none; display: flex; align-items: center; justify-content: center; gap: 0.5rem; }
-.m-btn-primary { background: linear-gradient(to right, #2563eb, #3b82f6); color: white; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1); }
-.m-btn-primary:hover { filter: brightness(1.1); transform: translateY(-1px); }
-.m-btn-preview { background-color: #1f2937; border: 1px solid #374151; color: white; font-size: 0.75rem; padding: 0.5rem; margin-top: 0.5rem; }
-.m-btn-preview:hover { background-color: #374151; }
+/* 迷你預覽區 (取代大預覽) */
+.m-mini-preview-container { margin-top: 1rem; border: 1px solid #374151; border-radius: 0.5rem; overflow: hidden; background: #000; height: 100px; display: flex; align-items: center; justify-content: center; position: relative; }
+.m-mini-preview-canvas { max-width: 100%; max-height: 100%; object-fit: contain; }
+.m-mini-label { position: absolute; top: 4px; left: 4px; font-size: 9px; color: #666; background: rgba(0,0,0,0.5); padding: 1px 3px; border-radius: 2px; }
 
-/* Radio Group */
-.m-radio-group { display: flex; gap: 0.75rem; margin-bottom: 1rem; }
-.m-radio-option { flex: 1; background: #1f2937; padding: 0.5rem; border-radius: 0.25rem; font-size: 0.75rem; cursor: pointer; display: flex; gap: 0.5rem; align-items: center; border: 1px solid #374151; color: #d1d5db; transition: 0.2s; }
-.m-radio-option:hover { border-color: #6b7280; }
-.m-radio-option input { display: none; }
-.m-radio-option:has(input:checked) { background: rgba(34, 197, 94, 0.1); border-color: #22c55e; color: white; }
+/* 刷新按鈕 */
+.m-refresh-btn { width: 100%; margin-top: 0.5rem; background-color: #1f2937; color: white; font-size: 0.75rem; padding: 0.5rem; border-radius: 0.25rem; border: 1px solid #4b5563; transition: background-color 150ms ease-in-out; cursor: pointer; }
+.m-refresh-btn:hover { background-color: #374151; }
 
-/* Logs */
-.m-logs { height: 8rem; background: black; border-top: 1px solid #1f2937; padding: 0.5rem; display: flex; flex-direction: column; font-family: monospace; font-size: 0.625rem; }
-.m-logs-header { display: flex; justify-content: space-between; color: #6b7280; margin-bottom: 0.25rem; }
-.m-logs-content { flex: 1; overflow-y: auto; color: rgba(74, 222, 128, 0.8); line-height: 1.4; }
+/* 日誌區 */
+.m-logs-container { height: 8rem; background-color: black; border-top: 1px solid #1f2937; display: flex; flex-direction: column; padding: 0.5rem; }
+.m-logs-header { display: flex; justify-content: space-between; font-size: 0.5625rem; color: #6b7280; margin-bottom: 0.25rem; }
+.m-logs-clear-btn { background:none; border:none; color: #6b7280; cursor: pointer; font-size: 0.5625rem; }
+.m-logs-clear-btn:hover { color: white; }
+.m-logs-content { flex: 1; overflow-y: auto; font-family: monospace; font-size: 0.5625rem; color: rgba(100, 255, 100, 0.8); white-space: pre-wrap; }
 .log-err { color: #ef4444; }
 
-/* 右側主視圖 */
-.m-main-view { background-color: #030712; display: flex; flex-direction: column; position: relative; }
+/* 主視圖 (Main) */
+.m-main-view { grid-column: span 9 / span 9; background-color: #030712; display: flex; flex-direction: column; position: relative; }
 
-/* 預覽與時間軸 */
-.m-preview-area { flex: 2; display: flex; align-items: center; justify-content: center; background-image: linear-gradient(45deg, #1a1a1a 25%, transparent 25%), linear-gradient(-45deg, #1a1a1a 25%, transparent 25%), linear-gradient(45deg, transparent 75%, #1a1a1a 75%), linear-gradient(-45deg, transparent 75%, #1a1a1a 75%); background-size: 20px 20px; background-color: #0f0f0f; border-bottom: 1px solid #1f2937; position: relative; }
-.m-preview-label { position: absolute; top: 1rem; left: 1rem; font-size: 0.625rem; background: #000; padding: 0.25rem 0.5rem; border: 1px solid #333; color: #666; border-radius: 0.25rem; font-weight: bold; letter-spacing: 1px; }
-canvas { max-width: 90%; max-height: 90%; box-shadow: 0 0 20px rgba(0,0,0,0.5); border: 1px solid #333; }
+/* 時間軸區 */
+.m-timeline-section { height: 50%; border-bottom: 1px solid #1f2937; display: flex; flex-direction: column; position: relative; }
+.m-timeline-container { flex: 1; overflow-x: auto; overflow-y: hidden; white-space: nowrap; padding: 1rem; position: relative; display: flex; align-items: center; }
+.m-timeline-empty { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; color: #6b7280; pointer-events: none; }
+.m-timeline-empty-text { font-size: 0.875rem; letter-spacing: 0.1em; opacity: 0.5; }
+.m-film-strip { display: flex; height: 100%; z-index: 10; }
 
-.m-timeline { flex: 1; background: #0f1115; display: flex; flex-direction: column; overflow: hidden; min-height: 150px; }
-.m-timeline-header { padding: 0.5rem 1rem; font-size: 0.625rem; color: #6b7280; border-bottom: 1px solid #1f2937; background: #111827; display: flex; justify-content: space-between; font-weight: bold; }
-.m-timeline-track { flex: 1; overflow-x: auto; overflow-y: hidden; white-space: nowrap; padding: 0.75rem; display: flex; align-items: center; gap: 2px; }
-.m-timeline-frame { height: 100%; border-right: 1px solid #333; opacity: 0.8; transition: 0.2s; flex-shrink: 0; width: 160px; }
-.m-timeline-frame:hover { opacity: 1; border-color: #666; }
+/* 剪輯與輸出區 */
+.m-output-section { flex: 1; background-color: #030712; padding: 1.5rem; display: flex; flex-direction: column; min-height: 0; }
+.m-output-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; padding-bottom: 0.5rem; border-bottom: 1px solid #1f2937; }
+.m-output-title { font-size: 0.875rem; font-weight: 700; color: #d1d5db; }
+.m-add-segment-btn { font-size: 0.625rem; background-color: #1f2937; color: #d1d5db; padding: 0.375rem 0.75rem; border-radius: 0.25rem; border: 1px solid #374151; cursor: pointer; }
+.m-add-segment-btn:hover { background-color: #374151; }
+.m-segments-container { flex: 1; overflow-y: auto; padding-right: 0.5rem; margin-bottom: 1rem; display: flex; flex-direction: column; gap: 0.5rem; }
 
-/* Modal 彈窗 */
-.modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.85); backdrop-filter: blur(4px); z-index: 50; display: flex; align-items: center; justify-content: center; opacity: 0; pointer-events: none; transition: 0.3s; }
-.modal-overlay.active { opacity: 1; pointer-events: auto; }
-.modal-box { background: #111827; border: 1px solid #374151; padding: 2rem; border-radius: 1rem; width: 360px; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5); transform: scale(0.95); transition: 0.2s; text-align: center; position: relative; }
-.modal-overlay.active .modal-box { transform: scale(1); }
-.modal-close { position: absolute; top: 1rem; right: 1rem; background: none; border: none; color: #6b7280; cursor: pointer; font-size: 1.25rem; }
+/* 底部處理區 */
+.m-process-footer { display: flex; align-items: center; justify-content: space-between; padding-top: 1rem; border-top: 1px solid #1f2937; }
+.m-output-mode-group { display: flex; align-items: center; gap: 1rem; background-color: #111827; padding: 0.375rem; border-radius: 0.5rem; border: 1px solid #1f2937; }
+.m-output-mode-label-text { font-size: 0.625rem; font-weight: 700; color: #6b7280; padding-left: 0.5rem; }
+.m-output-mode-option { cursor: pointer; padding: 0.25rem 0.75rem; border-radius: 0.25rem; font-size: 0.75rem; color: #d1d5db; transition: 0.15s; }
+.m-output-mode-option input { display: none; }
+.m-output-mode-option:has(input:checked) { background-color: #374151; color: white; }
 
-/* 進度圈 */
-.progress-ring circle { transition: stroke-dashoffset 0.3s; transform: rotate(-90deg); transform-origin: 50% 50%; }
+.m-process-btn { background-color: #2563eb; color: white; padding: 0.75rem 2rem; border-radius: 0.5rem; font-weight: 700; font-size: 0.875rem; display: flex; align-items: center; gap: 0.75rem; border: none; cursor: pointer; transition: 0.15s; }
+.m-process-btn:hover { background-color: #3b82f6; }
+.m-process-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+.m-process-loader { width: 1rem; height: 1rem; border: 2px solid rgba(255, 255, 255, 0.3); border-radius: 9999px; }
+.hidden { display: none !important; }
+
+/* 片段模板 */
+.m-segment-item { padding: 0.75rem; border-radius: 0.5rem; display: flex; align-items: center; gap: 1rem; border: 1px solid rgba(75,85,99,0.4); }
+.m-segment-item:hover { border-color: #6b7280; }
+.m-segment-index { font-size: 0.75rem; font-family: monospace; color: #6b7280; width: 1.5rem; }
+.m-segment-input-group { flex: 1; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1rem; }
+.m-segment-input-wrapper { position: relative; }
+.m-segment-input-label { position: absolute; top: -0.5rem; left: 0.5rem; background-color: #1f2937; padding: 0 0.25rem; font-size: 0.5625rem; color: #6b7280; border-radius: 2px; }
+.m-segment-input { width: 100%; background-color: rgba(17, 24, 40, 0.5); border: 1px solid #374151; border-radius: 0.25rem; padding: 0.5rem 0.75rem; font-size: 0.875rem; font-family: monospace; color: #93c5fd; outline: none; box-sizing: border-box; }
+.m-segment-input:focus { border-color: #3b82f6; }
+.m-delete-btn { color: #4b5563; padding: 0.5rem; border-radius: 0.25rem; background: transparent; border: none; cursor: pointer; display: flex; align-items: center; }
+.m-delete-btn:hover { color: #f87171; background-color: #1f2937; }
+
+/* Google Auth Button override */
+#auth-btn { background: none; border: 1px solid #4b5563; color: #d1d5db; padding: 4px 8px; border-radius: 4px; font-size: 10px; cursor: pointer; }
+#auth-btn:hover { border-color: #60a5fa; color: white; }
 </style>
 </head>
 <body class="m-body">
 
   <header class="m-header">
-    <div class="m-header-left">
-      <button id="open-settings-btn" class="m-settings-btn" title="設定">
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.572 1.065c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><path d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
-      </button>
-      <div style="height:24px; width:1px; background:#374151;"></div>
-      <div class="m-logo-group">
-        <div class="m-logo-dot"></div>
-        <h1 class="m-logo-text">EVOLUMATE <span>PRO</span></h1>
-      </div>
+    <div class="m-header-group">
+      <div class="m-logo-dot"></div>
+      <h1 class="m-logo-text">EVOLUMATE <span class="m-logo-text-sub">PRO</span></h1>
     </div>
     <div class="m-status-group">
-      <div id="auth-indicator" class="m-auth-status hidden">
-        <svg width="12" height="12" fill="currentColor" viewBox="0 0 20 20"><path d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"/></svg>
-        已登入
-      </div>
-      <div class="m-engine-status">
-        <span id="engine-dot" class="m-status-dot"></span>
-        <span id="engine-status">Loading...</span>
-      </div>
+        <button id="auth-btn">連結 Drive</button>
+        <div class="m-engine-status">
+            <span class="m-status-dot" id="engine-dot"></span>
+            <span id="engine-status">Loading Core...</span>
+        </div>
     </div>
   </header>
 
   <div class="m-main-content">
     <aside class="m-aside">
-      <div class="m-aside-section">
+      <div class="m-aside-section-top">
         <h2 class="m-section-title">1. 來源影片</h2>
-        <div class="m-dropzone">
-          <input type="file" id="uploader" accept="video/*">
-          <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/></svg>
-          <p>點擊或拖曳上傳</p>
+        <div id="dropzone" class="m-dropzone">
+          <input type="file" id="uploader" accept="video/*" class="m-dropzone-input" />
+          <svg class="m-dropzone-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path></svg>
+          <p class="m-dropzone-text">拖曳或點擊上傳</p>
         </div>
         <video id="source-video" class="hidden" muted playsinline></video>
       </div>
 
-      <div class="m-params-container">
-        <h2 class="m-section-title title-blue">2. 去背參數 <input type="checkbox" id="enable-chroma" checked></h2>
+      <div class="m-aside-section-params">
+        <div class="m-params-header">
+          <h2 class="m-params-title">2. 去背參數</h2>
+          <label class="m-toggle-label">
+            <input type="checkbox" id="enable-chroma" checked class="m-toggle-input peer">
+            <div class="m-toggle-slider peer"></div>
+          </label>
+        </div>
         
-        <div>
-          <div class="m-control-row">去背顏色 (Key Color)</div>
-          <div style="display:flex; gap:0.5rem;">
-            <input type="color" id="key-color" value="#00FF00">
-            <input type="text" id="key-color-text" value="#00FF00">
+        <div class="m-params-list">
+          <div class="m-mini-preview-container transparency-grid">
+             <div class="m-mini-label">PREVIEW CHECK</div>
+             <canvas id="mini-preview-canvas" class="m-mini-preview-canvas"></canvas>
           </div>
-        </div>
 
-        <div>
-          <div class="m-control-row"><span>相似度</span><span id="val-sim" class="m-control-val">0.30</span></div>
-          <input type="range" id="similarity" min="0.01" max="0.7" step="0.01" value="0.3">
-        </div>
+          <div class="m-param-group">
+            <label class="m-param-label">去背顏色</label>
+            <div class="m-color-input-group">
+              <input type="color" id="key-color" value="#00FF00" class="m-color-picker">
+              <input type="text" id="key-color-text" value="#00FF00" class="m-color-text-input">
+            </div>
+          </div>
+          <div>
+              <div class="m-range-label-group"><span class="m-range-label-text">相似度 (Similarity)</span></div>
+              <input type="range" id="similarity" min="0.01" max="0.7" step="0.01" value="0.3" class="m-range-input">
+          </div>
+          <div>
+              <div class="m-range-label-group"><span class="m-range-label-text">平滑度 (Blend)</span></div>
+              <input type="range" id="blend" min="0.0" max="0.5" step="0.01" value="0.1" class="m-range-input">
+          </div>
+          
+          <div style="padding-top:1rem; border-top:1px solid #1f2937;">
+            <div style="display:flex; justify-content:space-between; align-items:center;">
+                <span style="font-size:0.625rem; color:#f59e0b; font-weight:700;">安全模式 (720p Limit)</span>
+                <input type="checkbox" id="safe-mode" checked style="accent-color:#f59e0b;">
+            </div>
+          </div>
 
-        <div>
-          <div class="m-control-row"><span>平滑度</span><span id="val-blend" class="m-control-val">0.10</span></div>
-          <input type="range" id="blend" min="0.0" max="0.5" step="0.01" value="0.1">
+          <button id="apply-preview-btn" class="m-refresh-btn">刷新預覽 (Current Time)</button>
         </div>
-
-        <button id="apply-preview-btn" class="m-btn m-btn-preview">刷新預覽</button>
       </div>
-
-      <div class="m-aside-section" style="border-bottom:none;">
-        <h2 class="m-section-title title-green">3. 輸出設定</h2>
-        <div class="m-radio-group">
-          <label class="m-radio-option">
-            <input type="radio" name="output-mode" value="merged" checked> 合併 (單檔)
-          </label>
-          <label class="m-radio-option">
-            <input type="radio" name="output-mode" value="split"> 分離 (雙檔)
-          </label>
-        </div>
-        <button id="process-btn" class="m-btn m-btn-primary">生成並上傳至 Drive</button>
-      </div>
-
-      <div class="m-logs">
-         <div class="m-logs-header"><span>SYSTEM LOGS</span><span style="cursor:pointer;" onclick="document.getElementById('logs').innerHTML=''">CLEAR</span></div>
+      
+      <div class="m-logs-container">
+         <div class="m-logs-header"><span>SYSTEM LOGS</span><button onclick="document.getElementById('logs').innerHTML=''" class="m-logs-clear-btn">CLEAR</button></div>
          <div id="logs" class="m-logs-content"></div>
       </div>
     </aside>
 
     <main class="m-main-view">
-      <div class="m-preview-area">
-        <canvas id="preview-canvas"></canvas>
-        <div class="m-preview-label">LIVE PREVIEW</div>
+      <div class="m-timeline-section">
+        <div id="timeline-container" class="m-timeline-container transparency-grid">
+           <div id="timeline-empty" class="m-timeline-empty"><span class="m-timeline-empty-text">請先載入影片</span></div>
+           <div id="film-strip" class="m-film-strip"></div>
+        </div>
       </div>
-      <div class="m-timeline">
-          <div class="m-timeline-header">
-              <span>TIMELINE</span>
-              <span>SCROLL: MOVE / CTRL+SCROLL: ZOOM</span>
-          </div>
-          <div id="timeline-track" class="m-timeline-track transparency-grid">
-              <div id="timeline-empty" style="color:#4b5563; font-size:0.75rem; margin:auto;">等待載入...</div>
-          </div>
+
+      <div class="m-output-section">
+         <div class="m-output-header">
+            <h3 class="m-output-title">3. 剪輯與輸出列表</h3>
+            <button id="add-segment-btn" class="m-add-segment-btn">+ 新增片段</button>
+         </div>
+         <div id="segments-container" class="m-segments-container"></div>
+
+         <div class="m-process-footer">
+            <div class="m-output-mode-group">
+                <span class="m-output-mode-label-text">模式</span>
+                <label class="m-output-mode-option"><input type="radio" name="output-mode" value="merged" checked><span>合併單檔</span></label>
+                <label class="m-output-mode-option"><input type="radio" name="output-mode" value="split"><span>分離雙檔</span></label>
+            </div>
+            <button id="process-btn" class="m-process-btn">
+               <span id="process-text">執行處理並上傳</span>
+               <div id="process-loader" class="m-process-loader loader hidden"></div>
+            </button>
+         </div>
       </div>
     </main>
   </div>
 
-  <div id="settings-modal" class="modal-overlay">
-    <div class="modal-box">
-      <button id="close-settings" class="modal-close">&times;</button>
-      <h3 style="color:white; font-size:1.125rem; font-weight:bold; margin-bottom:1.5rem;">設定</h3>
-      
-      <div style="background:#1f2937; padding:1rem; border-radius:0.5rem; border:1px solid #374151; margin-bottom:1.5rem;">
-        <p style="font-size:0.75rem; color:#9ca3af; margin-bottom:0.75rem;">請連結 Google Drive 以啟用儲存功能</p>
-        <button id="auth-btn" class="m-btn" style="background:white; color:#111;">連結 Google 帳戶</button>
-      </div>
-
-      <div style="text-align:left; font-size:0.75rem; color:#6b7280; line-height:1.8;">
-        <p>• 儲存位置: Drive > <b>TempForChar</b></p>
-        <p>• 運算核心: Local Multi-Thread</p>
-        <p>• 版本: 051 (Pure CSS UI)</p>
-      </div>
-    </div>
-  </div>
-
-  <div id="progress-modal" class="modal-overlay">
-    <div class="modal-box" style="padding-top:2.5rem;">
-      <div style="position:relative; width:100px; height:100px; margin:0 auto 1.25rem;">
-        <svg width="100" height="100" viewBox="0 0 100 100">
-          <circle cx="50" cy="50" r="45" fill="none" stroke="#1f2937" stroke-width="8"></circle>
-          <circle id="progress-ring" class="progress-ring" cx="50" cy="50" r="45" fill="none" stroke="#3b82f6" stroke-width="8" stroke-dasharray="282.7" stroke-dashoffset="282.7"></circle>
-        </svg>
-        <div style="position:absolute; inset:0; display:flex; align-items:center; justify-content:center; color:white; font-weight:bold; font-size:1.25rem;">
-          <span id="progress-text">0%</span>
+<template id="segment-template">
+    <div class="glass-panel m-segment-item">
+        <div class="m-segment-index index-display">01</div>
+        <div class="m-segment-input-group">
+            <div class="m-segment-input-wrapper"><label class="m-segment-input-label">START (s)</label><input type="number" step="0.001" class="seg-start m-segment-input"></div>
+            <div class="m-segment-input-wrapper"><label class="m-segment-input-label">END (s)</label><input type="number" step="0.001" class="seg-end m-segment-input"></div>
         </div>
-      </div>
-      <div id="progress-detail" style="color:#9ca3af; font-size:0.75rem; font-family:monospace;">INITIALIZING...</div>
+        <button class="delete-btn m-delete-btn">
+            <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+        </button>
     </div>
-  </div>
+</template>
 
 <script>
 // ==========================================
-// ★★★ CLIENT ID ★★★
+// ★★★ 配置區 ★★★
 // ==========================================
 const CLIENT_ID = '109304005862-23ir7vpl8a48vjd0t0vqs0rsfbh4049m.apps.googleusercontent.com';
 const SCOPES = 'https://www.googleapis.com/auth/drive.file';
 
-// --- Global Vars ---
+// --- 全域變數 ---
 let tokenClient, accessToken = null;
 let ffmpeg = null, fetchFile = null;
 let isEngineReady = false, currentFile = null;
+let originalFrames = []; // 用於預覽
 
-// --- Logger ---
+// --- Logger 工具 ---
 const log = (msg, type='info') => {
+    const logsEl = document.getElementById('logs');
     const p = document.createElement('div');
     p.textContent = `> ${msg}`;
     if(type === 'error') p.className = 'log-err';
-    document.getElementById('logs').appendChild(p);
-    document.getElementById('logs').scrollTop = 9999;
+    logsEl.appendChild(p);
+    logsEl.scrollTop = logsEl.scrollHeight;
     console.log(`[${type.toUpperCase()}] ${msg}`);
 };
 
-// --- FFmpeg Init (Total Blob Proxy) ---
+// ==========================================
+// 1. FFmpeg 核心初始化 (Multi-Thread)
+// ==========================================
 (async () => {
     try {
-        log("初始化全雲端核心...");
+        log("初始化雲端核心...");
         
         const fetchBlob = async (url, type) => {
             const r = await fetch(url);
@@ -290,13 +303,11 @@ const log = (msg, type='info') => {
         };
 
         const BASE = "https://unpkg.com";
-        // 1. 下載主程式與工具
         const [ffmpegBlob, utilBlob] = await Promise.all([
             fetchBlob(`${BASE}/@ffmpeg/ffmpeg@0.12.10/dist/umd/ffmpeg.js`, 'text/javascript'),
             fetchBlob(`${BASE}/@ffmpeg/util@0.12.1/dist/umd/index.js`, 'text/javascript')
         ]);
 
-        // 2. 動態注入
         await new Promise(resolve => {
             const s1 = document.createElement('script'); s1.src = utilBlob; document.head.appendChild(s1);
             s1.onload = () => {
@@ -305,7 +316,6 @@ const log = (msg, type='info') => {
             };
         });
 
-        // 3. 下載核心 (Multi-Thread)
         const [coreBlob, wasmBlob, workerBlob] = await Promise.all([
             fetchBlob(`${BASE}/@ffmpeg/core-mt@0.12.6/dist/umd/ffmpeg-core.js`, 'text/javascript'),
             fetchBlob(`${BASE}/@ffmpeg/core-mt@0.12.6/dist/umd/ffmpeg-core.wasm`, 'application/wasm'),
@@ -313,8 +323,7 @@ const log = (msg, type='info') => {
         ]);
 
         const { FFmpeg } = FFmpegWASM;
-        const { fetchFile: ff } = FFmpegUtil;
-        fetchFile = ff;
+        fetchFile = FFmpegUtil.fetchFile;
         ffmpeg = new FFmpeg();
 
         await ffmpeg.load({
@@ -334,51 +343,9 @@ const log = (msg, type='info') => {
     }
 })();
 
-// --- UI Logic ---
-const videoEl = document.getElementById('source-video');
-const canvasEl = document.getElementById('preview-canvas');
-const ctx = canvasEl.getContext('2d');
-
-document.getElementById('uploader').onchange = (e) => handleFile(e.target.files[0]);
-
-function handleFile(file) {
-    if(!file) return;
-    currentFile = file;
-    document.getElementById('timeline-empty').classList.add('hidden');
-    videoEl.src = URL.createObjectURL(file);
-    videoEl.load();
-    log(`已載入: ${file.name}`);
-    
-    videoEl.onloadeddata = async () => {
-        updatePreview();
-        // Generate Timeline
-        const track = document.getElementById('timeline-track');
-        track.innerHTML = ''; 
-        const count = Math.min(Math.ceil(videoEl.duration/1), 20);
-        for(let i=0; i<count; i++) {
-            videoEl.currentTime = i * (videoEl.duration/count);
-            await new Promise(r => videoEl.onseeked = r);
-            const cvs = document.createElement('canvas');
-            cvs.className = 'm-timeline-frame';
-            cvs.width = 160; cvs.height = 90;
-            cvs.getContext('2d').drawImage(videoEl, 0, 0, 160, 90);
-            track.appendChild(cvs);
-        }
-    };
-}
-
-const updatePreview = () => {
-    if(!currentFile) return;
-    canvasEl.width = 480; canvasEl.height = 270;
-    ctx.drawImage(videoEl, 0, 0, 480, 270);
-};
-
-['key-color', 'similarity', 'blend', 'enable-chroma'].forEach(id => {
-    document.getElementById(id).addEventListener('input', updatePreview);
-});
-document.getElementById('key-color').addEventListener('input', (e) => document.getElementById('key-color-text').value = e.target.value.toUpperCase());
-
-// --- Google Auth ---
+// ==========================================
+// 2. Google Auth 邏輯
+// ==========================================
 function initAuth() {
     tokenClient = google.accounts.oauth2.initTokenClient({
         client_id: CLIENT_ID,
@@ -387,29 +354,14 @@ function initAuth() {
             if (resp.error) throw resp;
             accessToken = resp.access_token;
             document.getElementById('auth-btn').innerText = "✓ 已連結";
-            document.getElementById('auth-indicator').classList.remove('hidden');
-            toggleSettings(false);
+            document.getElementById('auth-btn').style.borderColor = "#22c55e";
+            document.getElementById('auth-btn').style.color = "#22c55e";
+            log("Google Drive 連結成功");
         },
     });
 }
 document.getElementById('auth-btn').onclick = () => { if(!accessToken) tokenClient.requestAccessToken(); };
 
-// --- Modals ---
-const settingsModal = document.getElementById('settings-modal');
-const progressModal = document.getElementById('progress-modal');
-const toggleSettings = (s) => settingsModal.classList.toggle('active', s);
-document.getElementById('open-settings-btn').onclick = () => toggleSettings(true);
-document.getElementById('close-settings').onclick = () => toggleSettings(false);
-settingsModal.onclick = (e) => { if(e.target === settingsModal) toggleSettings(false); };
-
-const setProgress = (p, t) => {
-    const off = 282.7 - (p/100)*282.7;
-    document.getElementById('progress-ring').style.strokeDashoffset = off;
-    document.getElementById('progress-text').innerText = Math.round(p)+'%';
-    if(t) document.getElementById('progress-detail').innerText = t;
-};
-
-// --- Drive & Process ---
 async function findOrCreateFolder(name, parentId='root') {
     const q = `'${parentId}' in parents and name='${name}' and mimeType='application/vnd.google-apps.folder' and trashed=false`;
     const r = await fetch(`https://www.googleapis.com/drive/v3/files?q=${encodeURIComponent(q)}`, { headers: { Authorization: `Bearer ${accessToken}` } });
@@ -418,6 +370,7 @@ async function findOrCreateFolder(name, parentId='root') {
     const c = await fetch('https://www.googleapis.com/drive/v3/files', { method: 'POST', headers: { Authorization: `Bearer ${accessToken}`, 'Content-Type': 'application/json' }, body: JSON.stringify({ name, mimeType: 'application/vnd.google-apps.folder', parents: [parentId] }) });
     return (await c.json()).id;
 }
+
 async function uploadToDrive(folderId, filename, blob) {
     const metadata = { name: filename, parents: [folderId] };
     const form = new FormData();
@@ -426,61 +379,211 @@ async function uploadToDrive(folderId, filename, blob) {
     await fetch('https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart', { method: 'POST', headers: { Authorization: `Bearer ${accessToken}` }, body: form });
 }
 
-document.getElementById('process-btn').onclick = async () => {
-    if(!accessToken) return toggleSettings(true);
-    if(!isEngineReady || !currentFile) return alert("系統未就緒");
+// ==========================================
+// 3. UI 交互邏輯
+// ==========================================
+const videoEl = document.getElementById('source-video');
+const previewCanvas = document.getElementById('mini-preview-canvas');
+const previewCtx = previewCanvas.getContext('2d');
 
-    progressModal.classList.add('active');
-    setProgress(0, "初始化...");
+// 檔案處理
+const handleFile = (file) => {
+    if(!file) return;
+    currentFile = file;
+    document.getElementById('timeline-empty').classList.add('hidden');
+    videoEl.src = URL.createObjectURL(file);
+    videoEl.load();
+    log(`已載入: ${file.name}`);
+
+    // 重置
+    document.getElementById('segments-container').innerHTML = '';
+    
+    videoEl.onloadeddata = async () => {
+        // 生成時間軸縮圖
+        const track = document.getElementById('film-strip');
+        track.innerHTML = '';
+        const count = Math.min(Math.ceil(videoEl.duration/1), 20); // 採樣20張
+        for(let i=0; i<count; i++) {
+            videoEl.currentTime = i * (videoEl.duration/count);
+            await new Promise(r => videoEl.onseeked = r);
+            const cvs = document.createElement('canvas');
+            cvs.className = 'timeline-canvas';
+            cvs.width = 160; cvs.height = 90;
+            cvs.getContext('2d').drawImage(videoEl, 0, 0, 160, 90);
+            track.appendChild(cvs);
+            // 點擊縮圖跳轉時間
+            cvs.onclick = () => { videoEl.currentTime = i * (videoEl.duration/count); refreshMiniPreview(); };
+        }
+        
+        // 預設新增一個全長片段
+        addSegmentRow(0, videoEl.duration);
+        refreshMiniPreview();
+    };
+};
+
+document.getElementById('uploader').onchange = (e) => handleFile(e.target.files[0]);
+// Drag & Drop
+const dz = document.getElementById('dropzone');
+dz.ondragover = (e) => { e.preventDefault(); dz.style.borderColor = '#3b82f6'; };
+dz.ondragleave = () => { dz.style.borderColor = '#374151'; };
+dz.ondrop = (e) => { e.preventDefault(); dz.style.borderColor = '#374151'; if(e.dataTransfer.files[0]) handleFile(e.dataTransfer.files[0]); };
+
+// 迷你預覽邏輯
+const refreshMiniPreview = () => {
+    if(!currentFile) return;
+    previewCanvas.width = 320; 
+    previewCanvas.height = 180;
+    
+    // 繪製當前影格到 Canvas
+    previewCtx.drawImage(videoEl, 0, 0, 320, 180);
+    
+    // 應用去背濾鏡 (JS 模擬)
+    const doChroma = document.getElementById('enable-chroma').checked;
+    if(doChroma) {
+        const frameData = previewCtx.getImageData(0,0,320,180);
+        const d = frameData.data;
+        const color = document.getElementById('key-color').value;
+        const rT = parseInt(color.substr(1,2),16);
+        const gT = parseInt(color.substr(3,2),16);
+        const bT = parseInt(color.substr(5,2),16);
+        const sim = parseFloat(document.getElementById('similarity').value) * 441;
+        const blend = parseFloat(document.getElementById('blend').value) * 441;
+
+        for(let j=0; j<d.length; j+=4) {
+            const dist = Math.sqrt((d[j]-rT)**2 + (d[j+1]-gT)**2 + (d[j+2]-bT)**2);
+            if(dist < sim) d[j+3] = 0;
+            else if(dist < sim+blend) d[j+3] = ((dist-sim)/blend)*255;
+        }
+        previewCtx.putImageData(frameData, 0, 0);
+    }
+};
+
+document.getElementById('apply-preview-btn').onclick = refreshMiniPreview;
+document.getElementById('key-color').addEventListener('input', (e) => {
+    document.getElementById('key-color-text').value = e.target.value.toUpperCase();
+    refreshMiniPreview(); // 即時回饋
+});
+
+// 剪輯片段邏輯
+const segTpl = document.getElementById('segment-template');
+function addSegmentRow(s, e) {
+    const n = segTpl.content.cloneNode(true);
+    n.querySelector('.seg-start').value = parseFloat(s).toFixed(3); 
+    n.querySelector('.seg-end').value = parseFloat(e).toFixed(3);
+    n.querySelector('.delete-btn').onclick = function(){ this.parentElement.remove(); updateIdx(); };
+    document.getElementById('segments-container').appendChild(n);
+    updateIdx();
+}
+document.getElementById('add-segment-btn').onclick = () => { 
+    const t = videoEl.currentTime || 0; 
+    addSegmentRow(t, Math.min(t+5, videoEl.duration)); 
+};
+function updateIdx() { 
+    document.querySelectorAll('.index-display').forEach((e,i) => e.innerText = (i+1).toString().padStart(2,'0')); 
+}
+
+// ==========================================
+// 4. 核心處理與上傳 (Process)
+// ==========================================
+document.getElementById('process-btn').onclick = async () => {
+    if(!accessToken) return alert("請先點擊上方按鈕連結 Google Drive");
+    if(!isEngineReady || !currentFile) return alert("系統未就緒或未選擇檔案");
+
+    const btn = document.getElementById('process-btn');
+    const loader = document.getElementById('process-loader');
+    const txt = document.getElementById('process-text');
+    btn.disabled = true; loader.classList.remove('hidden'); txt.textContent = "Processing...";
 
     try {
-        const rootId = await findOrCreateFolder("TempForChar");
+        log("開始任務...");
+        const rootId = await findOrCreateFolder("Evolumate_Exports");
         const ts = new Date().toISOString().replace(/[-:T.]/g, '').slice(0,14);
-        const completeId = await findOrCreateFolder("Complete", rootId);
+        const batchFolderId = await findOrCreateFolder(`Batch_${ts}`, rootId);
 
-        setProgress(10, "載入影片...");
+        log("載入檔案到記憶體...");
         await ffmpeg.writeFile('input.mp4', await fetchFile(currentFile));
 
         const hex = document.getElementById('key-color-text').value.replace('#','0x');
         const sim = document.getElementById('similarity').value;
         const blend = document.getElementById('blend').value;
         const doChroma = document.getElementById('enable-chroma').checked;
-        const mode = document.querySelector('input[name="output-mode"]:checked').value;
-        const filter = doChroma ? `format=rgba,chromakey=${hex}:${sim}:${blend}` : "null";
+        const safeMode = document.getElementById('safe-mode').checked;
+        const outputMode = document.querySelector('input[name="output-mode"]:checked').value;
 
-        setProgress(20, "影片轉碼中 (Multi-Thread)...");
-        await ffmpeg.exec(['-i','input.mp4','-vf',filter,'-c:v','libvpx-vp9','-b:v','0','-crf','30','-pix_fmt','yuva420p','-threads','0','-preset','ultrafast','-an','output_v.webm']);
+        // 構建濾鏡
+        let filters = [];
+        if(doChroma) filters.push(`chromakey=${hex}:${sim}:${blend}`);
+        if(safeMode) filters.push("scale='min(1280,iw)':-1");
+        // 確保格式
+        filters.push("format=yuva420p"); 
+        const vfStr = filters.join(',');
 
-        setProgress(60, "上傳影片...");
-        const vData = await ffmpeg.readFile('output_v.webm');
-        const vBlob = new Blob([vData.buffer], {type:'video/webm'});
+        const segments = document.querySelectorAll('.m-segment-item');
+        let idx = 0;
 
-        if (mode === 'merged') {
-            setProgress(70, "合併音訊...");
-            await ffmpeg.exec(['-i','input.mp4','-vn','-acodec','libmp3lame','-q:a','2','output_a.mp3']);
-            await ffmpeg.exec(['-i','output_v.webm','-i','output_a.mp3','-c','copy','final.webm']);
-            const fData = await ffmpeg.readFile('final.webm');
-            await uploadToDrive(completeId, `Evolumate_${ts}_Merged.webm`, new Blob([fData.buffer], {type:'video/webm'}));
-        } else {
-            await uploadToDrive(completeId, `Evolumate_${ts}_Video.webm`, vBlob);
-            setProgress(80, "處理音訊...");
-            await ffmpeg.exec(['-i','input.mp4','-vn','-acodec','libmp3lame','-q:a','2','output_a.mp3']);
-            const aData = await ffmpeg.readFile('output_a.mp3');
-            await uploadToDrive(completeId, `Evolumate_${ts}_Audio.mp3`, new Blob([aData.buffer], {type:'audio/mp3'}));
+        for(const row of segments) {
+            idx++;
+            const start = row.querySelector('.seg-start').value;
+            const end = row.querySelector('.seg-end').value;
+            const duration = (parseFloat(end) - parseFloat(start)).toFixed(3);
+            
+            txt.textContent = `Processing Seg ${idx}/${segments.length}`;
+            log(`[${idx}] 處理中: ${start}s - ${end}s`);
+
+            const baseName = `Evolumate_${ts}_Seg${idx.toString().padStart(2,'0')}`;
+
+            // 1. 處理影像 (無聲)
+            await ffmpeg.exec([
+                '-ss', start, '-t', duration,
+                '-i', 'input.mp4',
+                '-vf', vfStr,
+                '-c:v', 'libvpx-vp9', '-b:v', '0', '-crf', '35',
+                '-threads', '2', // 平衡速度與記憶體
+                '-an', 'temp_v.webm'
+            ]);
+
+            // 2. 處理音訊
+            await ffmpeg.exec([
+                '-ss', start, '-t', duration,
+                '-i', 'input.mp4',
+                '-vn', '-acodec', 'libmp3lame', '-q:a', '2',
+                'temp_a.mp3'
+            ]);
+
+            if (outputMode === 'merged') {
+                // 合併
+                await ffmpeg.exec(['-i', 'temp_v.webm', '-i', 'temp_a.mp3', '-c', 'copy', 'final.webm']);
+                const data = await ffmpeg.readFile('final.webm');
+                await uploadToDrive(batchFolderId, `${baseName}_Merged.webm`, new Blob([data.buffer], {type:'video/webm'}));
+                await ffmpeg.deleteFile('final.webm');
+            } else {
+                // 分離上傳
+                const vData = await ffmpeg.readFile('temp_v.webm');
+                await uploadToDrive(batchFolderId, `${baseName}_Video.webm`, new Blob([vData.buffer], {type:'video/webm'}));
+                
+                const aData = await ffmpeg.readFile('temp_a.mp3');
+                await uploadToDrive(batchFolderId, `${baseName}_Audio.mp3`, new Blob([aData.buffer], {type:'audio/mp3'}));
+            }
+
+            // 清理暫存
+            await ffmpeg.deleteFile('temp_v.webm');
+            await ffmpeg.deleteFile('temp_a.mp3');
         }
 
-        setProgress(100, "完成！");
-        alert("成功！檔案已上傳至 Drive。");
+        log("全部完成！", 'success');
+        alert(`處理完成！檔案已儲存於 Drive > Evolumate_Exports > Batch_${ts}`);
 
     } catch(e) {
-        log(e.message, 'error');
+        log(`Error: ${e.message}`, 'error');
+        console.error(e);
         alert("錯誤: " + e.message);
     } finally {
-        progressModal.classList.remove('active');
-        try { await ffmpeg.deleteFile('input.mp4'); await ffmpeg.deleteFile('output_v.webm'); await ffmpeg.deleteFile('output_a.mp3'); await ffmpeg.deleteFile('final.webm'); } catch(e){}
+        btn.disabled = false; loader.classList.add('hidden'); txt.textContent = "執行處理並上傳";
+        try { await ffmpeg.deleteFile('input.mp4'); } catch(e){}
     }
 };
 
+// 啟動初始化
 window.onload = initAuth;
 </script>
 </body>
