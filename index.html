@@ -5,11 +5,8 @@
 <title>Evolumate Studio - Pro</title>
 <script src="https://unpkg.com/coi-serviceworker/coi-serviceworker.min.js"></script>
 <script src="https://accounts.google.com/gsi/client" async defer></script>
-<script src="https://cdn.jsdelivr.net/npm/@ffmpeg/ffmpeg@0.12.10/dist/umd/ffmpeg.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/@ffmpeg/util@0.12.1/dist/umd/index.js"></script>
-
 <style>
-  /* === 內建 CSS (取代 Tailwind 以避免被 COEP 封鎖) === */
+  /* === 內建 CSS === */
   :root { --bg-dark: #030712; --bg-panel: #111827; --border: #1f2937; --text-main: #e5e7eb; --text-muted: #9ca3af; --primary: #3b82f6; --accent: #22c55e; }
   body { background-color: var(--bg-dark); color: var(--text-main); font-family: system-ui, -apple-system, sans-serif; margin: 0; height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
   
@@ -54,9 +51,15 @@
   .btn-primary:hover { filter: brightness(1.1); transform: translateY(-1px); }
   .btn-primary:disabled { filter: grayscale(1); opacity: 0.5; cursor: not-allowed; }
 
-  /* 預覽區 */
-  .preview-area { flex: 1; display: flex; align-items: center; justify-content: center; background-image: linear-gradient(45deg, #1a1a1a 25%, transparent 25%), linear-gradient(-45deg, #1a1a1a 25%, transparent 25%), linear-gradient(45deg, transparent 75%, #1a1a1a 75%), linear-gradient(-45deg, transparent 75%, #1a1a1a 75%); background-size: 20px 20px; background-color: #0f0f0f; }
+  /* 預覽與時間軸 */
+  .preview-area { flex: 2; display: flex; align-items: center; justify-content: center; background-image: linear-gradient(45deg, #1a1a1a 25%, transparent 25%), linear-gradient(-45deg, #1a1a1a 25%, transparent 25%), linear-gradient(45deg, transparent 75%, #1a1a1a 75%), linear-gradient(-45deg, transparent 75%, #1a1a1a 75%); background-size: 20px 20px; background-color: #0f0f0f; border-bottom: 1px solid var(--border); }
   canvas { max-width: 90%; max-height: 90%; box-shadow: 0 0 20px rgba(0,0,0,0.5); border: 1px solid #333; }
+
+  .timeline-area { flex: 1; background: #0f1115; display: flex; flex-direction: column; overflow: hidden; min-height: 150px; }
+  .timeline-header { padding: 8px 16px; font-size: 10px; color: #6b7280; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; background: var(--bg-panel); }
+  .timeline-track { flex: 1; overflow-x: auto; overflow-y: hidden; white-space: nowrap; padding: 10px; display: flex; align-items: center; gap: 2px; }
+  .timeline-frame { height: 100%; border-right: 1px solid #333; opacity: 0.8; transition: width 0.1s, opacity 0.2s; flex-shrink: 0; }
+  .timeline-frame:hover { opacity: 1; border-color: #666; }
 
   /* Modal */
   .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.8); backdrop-filter: blur(4px); z-index: 50; display: flex; align-items: center; justify-content: center; opacity: 0; pointer-events: none; transition: 0.3s; }
@@ -97,7 +100,6 @@
           <svg width="24" height="24" fill="none" stroke="#6b7280" stroke-width="2" viewBox="0 0 24 24"><path d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/></svg>
           <span style="font-size:10px; color:#6b7280; margin-top:8px;">點擊或拖曳上傳</span>
         </div>
-        <video id="source-video" class="hidden"></video>
       </div>
 
       <div class="panel-section" style="flex:1; overflow-y:auto;">
@@ -142,8 +144,18 @@
     <main class="content">
       <div class="preview-area">
         <canvas id="preview-canvas"></canvas>
+        <div style="position:absolute; top:16px; left:16px; font-size:10px; background:#000; padding:4px 8px; border:1px solid #333; color:#666; border-radius:4px;">LIVE PREVIEW</div>
       </div>
-      <div style="position:absolute; top:16px; left:16px; font-size:10px; background:#000; padding:4px 8px; border:1px solid #333; color:#666; border-radius:4px;">LIVE PREVIEW</div>
+      
+      <div class="timeline-area">
+          <div class="timeline-header">
+              <span>TIMELINE</span>
+              <span>SCROLL: MOVE / CTRL+SCROLL: ZOOM</span>
+          </div>
+          <div id="timeline-track" class="timeline-track transparency-grid">
+              <div id="timeline-empty" style="width:100%; text-align:center; color:#4b5563; font-size:12px;">等待載入...</div>
+          </div>
+      </div>
     </main>
   </div>
 
@@ -184,12 +196,12 @@
 
 <script>
 // ==========================================
-// ★★★ 請填入您的 CLIENT ID ★★★
+// ★★★ 請確認 CLIENT ID 正確 ★★★
 // ==========================================
 const CLIENT_ID = 'YOUR_GOOGLE_CLIENT_ID';
 const SCOPES = 'https://www.googleapis.com/auth/drive.file';
 
-// --- 全域變數 ---
+// --- VARS ---
 let tokenClient;
 let accessToken = null;
 let ffmpeg = null;
@@ -209,27 +221,74 @@ document.getElementById('uploader').onchange = (e) => {
     currentFile = f;
     videoEl.src = URL.createObjectURL(f);
     videoEl.load();
-    videoEl.onloadeddata = updatePreview;
+    videoEl.onloadeddata = () => {
+        updatePreview();
+        generateTimeline();
+    };
 };
 
-// 繪製預覽
 const updatePreview = () => {
     if(!currentFile) return;
     canvasEl.width = 480; canvasEl.height = 270;
     ctx.drawImage(videoEl, 0, 0, 480, 270);
 };
 
-// 綁定輸入事件
+// 參數綁定
 ['key-color', 'similarity', 'blend', 'enable-chroma'].forEach(id => {
     document.getElementById(id).addEventListener('input', updatePreview);
 });
 document.getElementById('key-color').addEventListener('input', (e) => document.getElementById('key-color-text').value = e.target.value.toUpperCase());
 
+// --- 時間軸邏輯 (修復版) ---
+let zoomLevel = 1;
+const timelineTrack = document.getElementById('timeline-track');
+
+async function generateTimeline() {
+    timelineTrack.innerHTML = ''; // 清空
+    const duration = videoEl.duration;
+    const count = Math.min(Math.ceil(duration / 1), 20); // 最多取 20 張預覽圖
+    
+    for(let i=0; i<count; i++) {
+        const time = i * (duration / count);
+        videoEl.currentTime = time;
+        await new Promise(r => videoEl.onseeked = r);
+        
+        const cvs = document.createElement('canvas');
+        cvs.width = 160; cvs.height = 90;
+        cvs.className = 'timeline-frame';
+        cvs.style.width = '160px'; // 初始寬度
+        
+        const tCtx = cvs.getContext('2d');
+        tCtx.drawImage(videoEl, 0, 0, 160, 90);
+        timelineTrack.appendChild(cvs);
+    }
+}
+
+// 滾輪控制
+timelineTrack.addEventListener('wheel', (e) => {
+    e.preventDefault();
+    if (e.ctrlKey) {
+        // Zoom
+        const delta = Math.sign(e.deltaY) * -0.1;
+        zoomLevel = Math.min(Math.max(0.5, zoomLevel + delta), 3);
+        const frames = document.querySelectorAll('.timeline-frame');
+        frames.forEach(f => {
+            f.style.width = `${160 * zoomLevel}px`;
+            f.style.height = `${90 * zoomLevel}px`;
+        });
+    } else {
+        // Horizontal Scroll
+        timelineTrack.scrollLeft += e.deltaY;
+    }
+});
+
 // --- Modal 控制 ---
 const settingsModal = document.getElementById('settings-modal');
 const progressModal = document.getElementById('progress-modal');
-document.getElementById('open-settings-btn').onclick = () => settingsModal.classList.add('active');
-document.getElementById('close-settings').onclick = () => settingsModal.classList.remove('active');
+const toggleSettings = (s) => settingsModal.classList.toggle('active', s);
+document.getElementById('open-settings-btn').onclick = () => toggleSettings(true);
+document.getElementById('close-settings').onclick = () => toggleSettings(false);
+settingsModal.onclick = (e) => { if(e.target === settingsModal) toggleSettings(false); };
 
 const setProgress = (p, t) => {
     const off = 282.7 - (p/100)*282.7;
@@ -238,7 +297,7 @@ const setProgress = (p, t) => {
     if(t) document.getElementById('progress-detail').innerText = t;
 };
 
-// --- Google 登入 ---
+// --- Auth ---
 function initAuth() {
     tokenClient = google.accounts.oauth2.initTokenClient({
         client_id: CLIENT_ID,
@@ -256,23 +315,45 @@ document.getElementById('auth-btn').onclick = () => {
     if(!accessToken) tokenClient.requestAccessToken();
 };
 
-// --- FFmpeg 初始化 (Blob Proxy 模式) ---
+// --- FFmpeg Init (Local Blob Mode) ---
 (async () => {
     try {
-        console.log("Loading FFmpeg...");
+        console.log("Loading Local FFmpeg...");
+        
+        // Load Script Content Manually
+        const fetchScript = async (url) => {
+            const r = await fetch(url);
+            if(!r.ok) throw new Error(`404: ${url}`);
+            return r.text();
+        };
+        const fetchBlob = async (url, type) => {
+            const r = await fetch(url);
+            if(!r.ok) throw new Error(`404: ${url}`);
+            return URL.createObjectURL(await r.blob());
+        };
+
+        // 1. Load Main Scripts
+        const ffmpegTxt = await fetchScript('./lib/ffmpeg.js');
+        const utilTxt = await fetchScript('./lib/index.js'); // util
+        
+        // Inject (Execute global scripts)
+        eval(ffmpegTxt);
+        eval(utilTxt);
+
+        // 2. Bind Globals
         const { FFmpeg } = FFmpegWASM;
         const { fetchFile: ff } = FFmpegUtil;
         fetchFile = ff;
         ffmpeg = new FFmpeg();
 
-        // 使用 Blob Proxy 載入 Worker，避開 Vercel 安全策略限制
-        const baseURL = 'https://cdn.jsdelivr.net/npm/@ffmpeg/core@0.12.6/dist/umd';
-        const workerBlob = await fetch(`${baseURL}/ffmpeg-core.worker.js`).then(r => r.blob());
-        const workerURL = URL.createObjectURL(workerBlob);
+        // 3. Load Core & Worker via Blob
+        const coreURL = await fetchBlob('./lib/ffmpeg-core.js', 'text/javascript');
+        const wasmURL = await fetchBlob('./lib/ffmpeg-core.wasm', 'application/wasm');
+        const workerURL = await fetchBlob('./lib/ffmpeg-core.worker.js', 'text/javascript');
 
         await ffmpeg.load({
-            coreURL: `${baseURL}/ffmpeg-core.js`,
-            wasmURL: `${baseURL}/ffmpeg-core.wasm`,
+            coreURL: coreURL,
+            wasmURL: wasmURL,
             workerURL: workerURL
         });
 
@@ -280,9 +361,11 @@ document.getElementById('auth-btn').onclick = () => {
         document.getElementById('engine-status').textContent = "Ready";
         document.getElementById('engine-dot').style.background = "#22c55e";
         console.log("FFmpeg Ready!");
+
     } catch(e) {
         console.error(e);
         document.getElementById('engine-status').textContent = "Error";
+        alert("引擎載入失敗: " + e.message);
     }
 })();
 
@@ -304,7 +387,7 @@ async function uploadToDrive(folderId, filename, blob) {
     await fetch('https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart', { method: 'POST', headers: { Authorization: `Bearer ${accessToken}` }, body: form });
 }
 
-// --- 主流程 ---
+// --- Process ---
 document.getElementById('process-btn').onclick = async () => {
     if(!accessToken) return settingsModal.classList.add('active');
     if(!isEngineReady || !currentFile) return alert("系統未就緒");
@@ -315,7 +398,6 @@ document.getElementById('process-btn').onclick = async () => {
     try {
         const rootId = await findOrCreateFolder("TempForChar");
         const ts = new Date().toISOString().replace(/[-:T.]/g, '').slice(0,14);
-        const sessionId = await findOrCreateFolder(`${ts}_Temp`, rootId);
         const completeId = await findOrCreateFolder("Complete", rootId);
 
         setProgress(10, "載入影片...");
@@ -329,7 +411,6 @@ document.getElementById('process-btn').onclick = async () => {
         const filter = doChroma ? `format=rgba,chromakey=${hex}:${sim}:${blend}` : "null";
 
         setProgress(20, "影片轉碼中 (Multi-Thread)...");
-        // 使用 -threads 0 自動分配核心
         await ffmpeg.exec(['-i','input.mp4','-vf',filter,'-c:v','libvpx-vp9','-b:v','0','-crf','30','-pix_fmt','yuva420p','-threads','0','-preset','ultrafast','-an','output_v.webm']);
 
         setProgress(60, "上傳影片...");
@@ -343,12 +424,7 @@ document.getElementById('process-btn').onclick = async () => {
             const fData = await ffmpeg.readFile('final.webm');
             await uploadToDrive(completeId, `Evolumate_${ts}_Merged.webm`, new Blob([fData.buffer], {type:'video/webm'}));
         } else {
-            // 切片備份到 Temp (可選)
-            // await uploadToDrive(sessionId, `raw_video.webm`, vBlob);
-            
-            // 影片上傳 Complete
             await uploadToDrive(completeId, `Evolumate_${ts}_Video.webm`, vBlob);
-            
             setProgress(80, "處理音訊...");
             await ffmpeg.exec(['-i','input.mp4','-vn','-acodec','libmp3lame','-q:a','2','output_a.mp3']);
             const aData = await ffmpeg.readFile('output_a.mp3');
@@ -363,7 +439,6 @@ document.getElementById('process-btn').onclick = async () => {
         alert("錯誤: " + e.message);
     } finally {
         progressModal.classList.remove('active');
-        // Cleanup
         try {
             await ffmpeg.deleteFile('input.mp4');
             await ffmpeg.deleteFile('output_v.webm');
