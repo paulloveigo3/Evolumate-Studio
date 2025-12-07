@@ -5,32 +5,27 @@
 <title>Evolumate Studio - Pro</title>
 <script src="https://unpkg.com/coi-serviceworker/coi-serviceworker.min.js"></script>
 <script src="https://accounts.google.com/gsi/client" async defer></script>
+
 <style>
-  /* === 內建 CSS === */
+  /* === 內建 CSS (確保 UI 穩定) === */
   :root { --bg-dark: #030712; --bg-panel: #111827; --border: #1f2937; --text-main: #e5e7eb; --text-muted: #9ca3af; --primary: #3b82f6; --accent: #22c55e; }
   body { background-color: var(--bg-dark); color: var(--text-main); font-family: system-ui, -apple-system, sans-serif; margin: 0; height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
-  
-  /* 滾動條 */
   ::-webkit-scrollbar { width: 6px; height: 6px; }
   ::-webkit-scrollbar-track { background: var(--bg-panel); }
   ::-webkit-scrollbar-thumb { background: #374151; border-radius: 3px; }
 
-  /* 頂部 */
   header { height: 56px; background: var(--bg-panel); border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; padding: 0 24px; flex-shrink: 0; z-index: 20; }
   .logo { font-weight: bold; letter-spacing: 1px; color: #d1d5db; display: flex; align-items: center; gap: 8px; font-size: 14px; }
   .logo span { color: var(--primary); }
   .status-bar { display: flex; align-items: center; gap: 16px; font-size: 12px; font-family: monospace; color: var(--text-muted); }
   
-  /* 設定按鈕 */
   .settings-btn { width: 32px; height: 32px; border-radius: 50%; background: #1f2937; border: 1px solid #374151; color: #9ca3af; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: 0.3s; }
   .settings-btn:hover { color: var(--primary); border-color: var(--primary); transform: rotate(90deg); }
 
-  /* 主佈局 */
   .main-layout { display: grid; grid-template-columns: 320px 1fr; height: 100%; overflow: hidden; }
   .sidebar { background: var(--bg-panel); border-right: 1px solid var(--border); display: flex; flex-direction: column; z-index: 10; }
   .content { background: #000; position: relative; display: flex; flex-direction: column; }
 
-  /* 面板與元件 */
   .panel-section { padding: 20px; border-bottom: 1px solid var(--border); }
   .panel-title { font-size: 11px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 10px; display: block; }
   .blue-title { color: #60a5fa; }
@@ -39,19 +34,16 @@
   .dropzone:hover { border-color: var(--primary); background: rgba(59, 130, 246, 0.1); }
   .dropzone input { position: absolute; inset: 0; opacity: 0; cursor: pointer; }
   
-  /* 輸入控制項 */
   .control-group { margin-bottom: 16px; }
   .control-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; font-size: 11px; color: var(--text-muted); }
   input[type="range"] { width: 100%; height: 4px; background: #374151; border-radius: 2px; appearance: none; cursor: pointer; }
   input[type="range"]::-webkit-slider-thumb { appearance: none; width: 14px; height: 14px; background: var(--primary); border-radius: 50%; }
-  
   input[type="text"] { background: #1f2937; border: 1px solid #374151; color: white; padding: 4px 8px; border-radius: 4px; font-family: monospace; font-size: 12px; width: 100%; box-sizing: border-box; }
   
   .btn-primary { width: 100%; background: linear-gradient(to right, #2563eb, #3b82f6); color: white; border: none; padding: 12px; border-radius: 6px; font-weight: bold; font-size: 13px; cursor: pointer; transition: 0.2s; text-shadow: 0 1px 2px rgba(0,0,0,0.2); }
   .btn-primary:hover { filter: brightness(1.1); transform: translateY(-1px); }
   .btn-primary:disabled { filter: grayscale(1); opacity: 0.5; cursor: not-allowed; }
 
-  /* 預覽與時間軸 */
   .preview-area { flex: 2; display: flex; align-items: center; justify-content: center; background-image: linear-gradient(45deg, #1a1a1a 25%, transparent 25%), linear-gradient(-45deg, #1a1a1a 25%, transparent 25%), linear-gradient(45deg, transparent 75%, #1a1a1a 75%), linear-gradient(-45deg, transparent 75%, #1a1a1a 75%); background-size: 20px 20px; background-color: #0f0f0f; border-bottom: 1px solid var(--border); }
   canvas { max-width: 90%; max-height: 90%; box-shadow: 0 0 20px rgba(0,0,0,0.5); border: 1px solid #333; }
 
@@ -61,15 +53,11 @@
   .timeline-frame { height: 100%; border-right: 1px solid #333; opacity: 0.8; transition: width 0.1s, opacity 0.2s; flex-shrink: 0; }
   .timeline-frame:hover { opacity: 1; border-color: #666; }
 
-  /* Modal */
   .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.8); backdrop-filter: blur(4px); z-index: 50; display: flex; align-items: center; justify-content: center; opacity: 0; pointer-events: none; transition: 0.3s; }
   .modal-overlay.active { opacity: 1; pointer-events: auto; }
   .modal-box { background: #111827; border: 1px solid #374151; padding: 24px; border-radius: 12px; width: 360px; box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.5); text-align: center; transform: scale(0.95); transition: 0.2s; }
   .modal-overlay.active .modal-box { transform: scale(1); }
-
-  /* 進度條動畫 */
   .progress-ring circle { transition: stroke-dashoffset 0.3s; transform: rotate(-90deg); transform-origin: 50% 50%; }
-  
   .hidden { display: none; }
 </style>
 </head>
@@ -86,7 +74,7 @@
       <div id="auth-indicator" class="hidden" style="color:#4ade80;">● 已登入</div>
       <div style="display:flex; align-items:center; gap:6px;">
         <span id="engine-dot" style="width:8px; height:8px; border-radius:50%; background:#ef4444; transition:0.5s;"></span>
-        <span id="engine-status">Loading...</span>
+        <span id="engine-status">Loading Engine...</span>
       </div>
     </div>
   </header>
@@ -100,6 +88,7 @@
           <svg width="24" height="24" fill="none" stroke="#6b7280" stroke-width="2" viewBox="0 0 24 24"><path d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/></svg>
           <span style="font-size:10px; color:#6b7280; margin-top:8px;">點擊或拖曳上傳</span>
         </div>
+        <video id="source-video" class="hidden"></video>
       </div>
 
       <div class="panel-section" style="flex:1; overflow-y:auto;">
@@ -107,7 +96,6 @@
           <span class="panel-title blue-title">2. 去背參數</span>
           <input type="checkbox" id="enable-chroma" checked style="cursor:pointer;">
         </div>
-
         <div class="control-group">
           <div class="control-row">去背顏色 (Key Color)</div>
           <div style="display:flex; gap:8px;">
@@ -115,12 +103,10 @@
             <input type="text" id="key-color-text" value="#00FF00">
           </div>
         </div>
-
         <div class="control-group">
           <div class="control-row"><span>相似度</span><span id="val-sim" style="color:#60a5fa;">0.30</span></div>
           <input type="range" id="similarity" min="0.01" max="0.7" step="0.01" value="0.3">
         </div>
-
         <div class="control-group">
           <div class="control-row"><span>平滑度</span><span id="val-blend" style="color:#60a5fa;">0.10</span></div>
           <input type="range" id="blend" min="0.0" max="0.5" step="0.01" value="0.1">
@@ -146,7 +132,6 @@
         <canvas id="preview-canvas"></canvas>
         <div style="position:absolute; top:16px; left:16px; font-size:10px; background:#000; padding:4px 8px; border:1px solid #333; color:#666; border-radius:4px;">LIVE PREVIEW</div>
       </div>
-      
       <div class="timeline-area">
           <div class="timeline-header">
               <span>TIMELINE</span>
@@ -162,19 +147,12 @@
   <div id="settings-modal" class="modal-overlay">
     <div class="modal-box">
       <h3 style="color:white; margin-bottom:20px; font-size:16px;">設定</h3>
-      
       <div style="background:#1f2937; padding:16px; border-radius:8px; border:1px solid #374151; margin-bottom:20px;">
         <p style="font-size:12px; color:#9ca3af; margin-bottom:12px;">請連結 Google Drive 以啟用儲存功能。</p>
         <button id="auth-btn" style="width:100%; background:white; color:#111; border:none; padding:8px; border-radius:4px; font-weight:bold; cursor:pointer;">
           連結 Google 帳戶
         </button>
       </div>
-
-      <div style="text-align:left; font-size:12px; color:#6b7280; line-height:1.6;">
-        <p>• 檔案位置: Drive > <b>TempForChar</b></p>
-        <p>• 運算核心: Local Multi-Thread</p>
-      </div>
-      
       <button id="close-settings" style="margin-top:20px; background:none; border:none; color:#6b7280; cursor:pointer; font-size:12px;">關閉</button>
     </div>
   </div>
@@ -196,12 +174,12 @@
 
 <script>
 // ==========================================
-// ★★★ 請確認 CLIENT ID 正確 ★★★
+// ★★★ 請替換成您的 CLIENT ID ★★★
 // ==========================================
 const CLIENT_ID = 'YOUR_GOOGLE_CLIENT_ID';
 const SCOPES = 'https://www.googleapis.com/auth/drive.file';
 
-// --- VARS ---
+// --- 全域變數 ---
 let tokenClient;
 let accessToken = null;
 let ffmpeg = null;
@@ -214,17 +192,13 @@ const videoEl = document.getElementById('source-video');
 const canvasEl = document.getElementById('preview-canvas');
 const ctx = canvasEl.getContext('2d');
 
-// 上傳預覽
 document.getElementById('uploader').onchange = (e) => {
     const f = e.target.files[0];
     if(!f) return;
     currentFile = f;
     videoEl.src = URL.createObjectURL(f);
     videoEl.load();
-    videoEl.onloadeddata = () => {
-        updatePreview();
-        generateTimeline();
-    };
+    videoEl.onloadeddata = () => { updatePreview(); generateTimeline(); };
 };
 
 const updatePreview = () => {
@@ -233,51 +207,38 @@ const updatePreview = () => {
     ctx.drawImage(videoEl, 0, 0, 480, 270);
 };
 
-// 參數綁定
 ['key-color', 'similarity', 'blend', 'enable-chroma'].forEach(id => {
     document.getElementById(id).addEventListener('input', updatePreview);
 });
 document.getElementById('key-color').addEventListener('input', (e) => document.getElementById('key-color-text').value = e.target.value.toUpperCase());
 
-// --- 時間軸邏輯 (修復版) ---
+// --- 時間軸邏輯 ---
 let zoomLevel = 1;
 const timelineTrack = document.getElementById('timeline-track');
-
 async function generateTimeline() {
-    timelineTrack.innerHTML = ''; // 清空
+    timelineTrack.innerHTML = ''; 
     const duration = videoEl.duration;
-    const count = Math.min(Math.ceil(duration / 1), 20); // 最多取 20 張預覽圖
-    
+    const count = Math.min(Math.ceil(duration / 1), 20); 
     for(let i=0; i<count; i++) {
         const time = i * (duration / count);
         videoEl.currentTime = time;
         await new Promise(r => videoEl.onseeked = r);
-        
         const cvs = document.createElement('canvas');
         cvs.width = 160; cvs.height = 90;
         cvs.className = 'timeline-frame';
-        cvs.style.width = '160px'; // 初始寬度
-        
+        cvs.style.cssText = 'height:100%; border-right:1px solid #333; flex-shrink:0; width:160px;';
         const tCtx = cvs.getContext('2d');
         tCtx.drawImage(videoEl, 0, 0, 160, 90);
         timelineTrack.appendChild(cvs);
     }
 }
-
-// 滾輪控制
 timelineTrack.addEventListener('wheel', (e) => {
     e.preventDefault();
     if (e.ctrlKey) {
-        // Zoom
         const delta = Math.sign(e.deltaY) * -0.1;
         zoomLevel = Math.min(Math.max(0.5, zoomLevel + delta), 3);
-        const frames = document.querySelectorAll('.timeline-frame');
-        frames.forEach(f => {
-            f.style.width = `${160 * zoomLevel}px`;
-            f.style.height = `${90 * zoomLevel}px`;
-        });
+        document.querySelectorAll('.timeline-frame').forEach(f => f.style.width = `${160 * zoomLevel}px`);
     } else {
-        // Horizontal Scroll
         timelineTrack.scrollLeft += e.deltaY;
     }
 });
@@ -311,61 +272,75 @@ function initAuth() {
         },
     });
 }
-document.getElementById('auth-btn').onclick = () => {
-    if(!accessToken) tokenClient.requestAccessToken();
-};
+document.getElementById('auth-btn').onclick = () => { if(!accessToken) tokenClient.requestAccessToken(); };
 
-// --- FFmpeg Init (Local Blob Mode) ---
+// --- 關鍵修正：全自動 Blob 代理 (Total Blob Proxy) ---
+// 這段代碼會自動把所有需要的 JS/WASM 抓下來變成 Blob，騙過瀏覽器
 (async () => {
     try {
-        console.log("Loading Local FFmpeg...");
+        console.log("Initializing Total Blob Proxy...");
         
-        // Load Script Content Manually
-        const fetchScript = async (url) => {
-            const r = await fetch(url);
-            if(!r.ok) throw new Error(`404: ${url}`);
-            return r.text();
-        };
+        // 1. 定義所有需要的檔案 (多執行緒版)
+        const BASE = "https://unpkg.com";
+        // FFmpeg 主程式
+        const FFMPEG_URL = `${BASE}/@ffmpeg/ffmpeg@0.12.10/dist/umd/ffmpeg.js`;
+        const UTIL_URL = `${BASE}/@ffmpeg/util@0.12.1/dist/umd/index.js`;
+        // 核心 (Core-MT)
+        const CORE_JS = `${BASE}/@ffmpeg/core-mt@0.12.6/dist/umd/ffmpeg-core.js`;
+        const CORE_WASM = `${BASE}/@ffmpeg/core-mt@0.12.6/dist/umd/ffmpeg-core.wasm`;
+        const CORE_WORKER = `${BASE}/@ffmpeg/core-mt@0.12.6/dist/umd/ffmpeg-core.worker.js`;
+
+        // 2. 通用 Fetcher
         const fetchBlob = async (url, type) => {
             const r = await fetch(url);
-            if(!r.ok) throw new Error(`404: ${url}`);
-            return URL.createObjectURL(await r.blob());
+            if (!r.ok) throw new Error(`Download Failed: ${url}`);
+            return URL.createObjectURL(new Blob([await r.arrayBuffer()], { type }));
         };
 
-        // 1. Load Main Scripts
-        const ffmpegTxt = await fetchScript('./lib/ffmpeg.js');
-        const utilTxt = await fetchScript('./lib/index.js'); // util
-        
-        // Inject (Execute global scripts)
-        eval(ffmpegTxt);
-        eval(utilTxt);
+        // 3. 下載並注入主程式 (FFmpeg + Util)
+        const [ffmpegBlob, utilBlob] = await Promise.all([
+            fetchBlob(FFMPEG_URL, 'text/javascript'),
+            fetchBlob(UTIL_URL, 'text/javascript')
+        ]);
 
-        // 2. Bind Globals
+        // 動態載入 Script
+        await new Promise(resolve => {
+            const s1 = document.createElement('script'); s1.src = utilBlob; document.head.appendChild(s1);
+            s1.onload = () => {
+                const s2 = document.createElement('script'); s2.src = ffmpegBlob; document.head.appendChild(s2);
+                s2.onload = resolve;
+            };
+        });
+
+        // 4. 下載核心檔案
+        const [coreBlob, wasmBlob, workerBlob] = await Promise.all([
+            fetchBlob(CORE_JS, 'text/javascript'),
+            fetchBlob(CORE_WASM, 'application/wasm'),
+            fetchBlob(CORE_WORKER, 'text/javascript')
+        ]);
+
+        // 5. 初始化 FFmpeg 實例
         const { FFmpeg } = FFmpegWASM;
         const { fetchFile: ff } = FFmpegUtil;
         fetchFile = ff;
         ffmpeg = new FFmpeg();
 
-        // 3. Load Core & Worker via Blob
-        const coreURL = await fetchBlob('./lib/ffmpeg-core.js', 'text/javascript');
-        const wasmURL = await fetchBlob('./lib/ffmpeg-core.wasm', 'application/wasm');
-        const workerURL = await fetchBlob('./lib/ffmpeg-core.worker.js', 'text/javascript');
-
+        // 6. 載入 (使用 Blob URL)
         await ffmpeg.load({
-            coreURL: coreURL,
-            wasmURL: wasmURL,
-            workerURL: workerURL
+            coreURL: coreBlob,
+            wasmURL: wasmBlob,
+            workerURL: workerBlob // 明確指定 Worker Blob，解決 404 & SecurityError
         });
 
         isEngineReady = true;
-        document.getElementById('engine-status').textContent = "Ready";
+        document.getElementById('engine-status').textContent = "Ready (MT)";
         document.getElementById('engine-dot').style.background = "#22c55e";
-        console.log("FFmpeg Ready!");
+        console.log("Engine Loaded Successfully!");
 
     } catch(e) {
         console.error(e);
         document.getElementById('engine-status').textContent = "Error";
-        alert("引擎載入失敗: " + e.message);
+        alert("引擎載入失敗，請檢查網路連線。\n" + e.message);
     }
 })();
 
